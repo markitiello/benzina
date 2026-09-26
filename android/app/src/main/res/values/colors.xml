@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#F2B632</color>
+    <!-- Giallo carburante del logo, per l'icona delle notifiche. -->
+    <color name="notification_color">#F2B632</color>
 </resources>

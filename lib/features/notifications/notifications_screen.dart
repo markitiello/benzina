@@ -147,6 +147,16 @@ class _NotificationTile extends ConsumerWidget {
         isDark ? const Color(0xFF3A2E10) : const Color(0xFFFBEFD0),
         isDark ? const Color(0xFFF2C75C) : const Color(0xFF7A5200),
       ),
+      NotificationKind.trendDown => (
+        Icons.trending_down_rounded,
+        c.cheapChipBg,
+        c.cheapChipFg,
+      ),
+      NotificationKind.trendUp => (
+        Icons.trending_up_rounded,
+        isDark ? const Color(0xFF3A2412) : const Color(0xFFFBE7D4),
+        isDark ? const Color(0xFFF5B98A) : const Color(0xFF7A3905),
+      ),
       NotificationKind.weeklySummary => (
         Icons.show_chart_rounded,
         isDark ? c.surfaceMuted : c.ground,
@@ -165,7 +175,9 @@ class _NotificationTile extends ConsumerWidget {
         case NotificationKind.priceBelowThreshold ||
             NotificationKind.favoriteDrop:
           if (n.stationId != null) context.push('/distributore/${n.stationId}');
-        case NotificationKind.weeklySummary:
+        case NotificationKind.weeklySummary ||
+            NotificationKind.trendUp ||
+            NotificationKind.trendDown:
           context.go('/andamento');
         case NotificationKind.appUpdate:
           context.push('/impostazioni');

@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/benzina_logo.dart';
 import '../../core/widgets/common.dart';
 import '../../data/models.dart';
+import '../../push/push_providers.dart';
 import '../../state/providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -130,6 +131,15 @@ class SettingsScreen extends ConsumerWidget {
           _Group(
             children: [
               _SwitchRow(
+                title: 'Prezzi in salita o in discesa',
+                subtitle:
+                    'Quando la media nazionale di ${s.fuel.label.toLowerCase()}'
+                    '${s.fuel.hasServiceModes ? ' ${s.mode.label.toLowerCase()}' : ''}'
+                    ' inizia a salire o a scendere',
+                value: s.trendAlerts,
+                onChanged: (v) => _setTrendAlerts(context, ref, v),
+              ),
+              _SwitchRow(
                 title: 'Avviso prezzo sotto soglia',
                 subtitle:
                     '${s.fuel.label} ${s.fuel.hasServiceModes ? '${s.mode.label.toLowerCase()} ' : ''}'
@@ -208,6 +218,36 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Attivando gli avvisi di tendenza si chiede il permesso per le notifiche.
+  Future<void> _setTrendAlerts(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final push = ref.read(pushGatewayProvider);
+    if (enabled && push.isAvailable && !await push.requestPermission()) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Notifiche non permesse: attivale nelle impostazioni del telefono.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (enabled && !push.isAvailable) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Notifiche push non configurate in questa versione.'),
+        ),
+      );
+    }
+    ref
+        .read(settingsProvider.notifier)
+        .update((s) => s.copyWith(trendAlerts: enabled));
   }
 
   Future<T?> _pick<T>(

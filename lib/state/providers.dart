@@ -29,6 +29,7 @@ class AppSettings {
     this.threshold = 1.750,
     this.favoriteAlerts = true,
     this.weeklySummary = false,
+    this.trendAlerts = true,
   });
 
   final FuelType fuel;
@@ -39,6 +40,10 @@ class AppSettings {
   final double threshold;
   final bool favoriteAlerts;
   final bool weeklySummary;
+
+  /// Notifica push quando la media nazionale del carburante scelto inizia a
+  /// salire o a scendere (vedi lib/push/).
+  final bool trendAlerts;
 
   /// Modalità effettiva: GPL e metano sono solo self.
   ServiceMode get effectiveMode =>
@@ -53,6 +58,7 @@ class AppSettings {
     double? threshold,
     bool? favoriteAlerts,
     bool? weeklySummary,
+    bool? trendAlerts,
   }) {
     return AppSettings(
       fuel: fuel ?? this.fuel,
@@ -63,6 +69,7 @@ class AppSettings {
       threshold: threshold ?? this.threshold,
       favoriteAlerts: favoriteAlerts ?? this.favoriteAlerts,
       weeklySummary: weeklySummary ?? this.weeklySummary,
+      trendAlerts: trendAlerts ?? this.trendAlerts,
     );
   }
 }
@@ -230,6 +237,12 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
         read: true,
       ),
     ];
+  }
+
+  /// Aggiunge in cima una notifica ricevuta (es. push). Ignora i doppioni.
+  void add(AppNotification notification) {
+    if (state.any((n) => n.id == notification.id)) return;
+    state = [notification, ...state];
   }
 
   void markRead(String id) =>

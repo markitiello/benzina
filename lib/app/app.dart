@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_theme.dart';
+import '../push/push_message.dart';
+import '../push/push_providers.dart';
+import '../push/push_topics.dart';
+import '../push/topic_sync.dart';
 import '../state/providers.dart';
 import 'router.dart';
 
@@ -19,6 +25,51 @@ class BenzinaApp extends ConsumerStatefulWidget {
 
 class _BenzinaAppState extends ConsumerState<BenzinaApp> {
   late final GoRouter _router = widget.router ?? buildRouter();
+  final _subscriptions = <StreamSubscription<PushMessage>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    final push = ref.read(pushGatewayProvider);
+    final notifications = ref.read(notificationsProvider.notifier);
+
+    // Notifiche push: finiscono nella lista Notifiche; toccarle apre la
+    // schermata giusta (Andamento per le tendenze).
+    _subscriptions
+      ..add(push.received.listen((m) => notifications.add(m.toNotification())))
+      ..add(push.opened.listen(_open));
+    push.launchMessage().then((m) {
+      if (m != null) _open(m);
+    });
+
+    // Iscrizione al topic del carburante scelto, aggiornata quando cambiano
+    // carburante, modalità o l'interruttore nelle impostazioni.
+    // (La chiave è una stringa: due Set uguali non sono "==" e il listener
+    // scatterebbe a ogni modifica delle impostazioni, anche del tema.)
+    ref.listenManual<String>(
+      settingsProvider.select((s) => desiredTopics(s).join(',')),
+      (_, key) => syncTrendTopics(
+        push,
+        key.isEmpty ? const {} : key.split(',').toSet(),
+      ),
+      fireImmediately: true,
+    );
+  }
+
+  void _open(PushMessage message) {
+    ref
+        .read(notificationsProvider.notifier)
+        .add(message.toNotification(read: true));
+    _router.go(message.route);
+  }
+
+  @override
+  void dispose() {
+    for (final s in _subscriptions) {
+      s.cancel();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

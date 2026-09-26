@@ -2,6 +2,8 @@ import 'package:benzina/app/app.dart';
 import 'package:benzina/app/router.dart';
 import 'package:benzina/data/location_service.dart';
 import 'package:benzina/data/mock_fuel_repository.dart';
+import 'package:benzina/push/push_gateway.dart';
+import 'package:benzina/push/push_providers.dart';
 import 'package:benzina/state/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +11,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-Widget buildApp({ThemeMode themeMode = ThemeMode.light}) {
+Widget buildApp({
+  ThemeMode themeMode = ThemeMode.light,
+  PushGateway push = const DisabledPushGateway(),
+}) {
   return ProviderScope(
     overrides: [
+      pushGatewayProvider.overrideWithValue(push),
       fuelRepositoryProvider.overrideWithValue(
         MockFuelRepository(latency: Duration.zero),
       ),

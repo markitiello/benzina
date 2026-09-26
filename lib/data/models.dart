@@ -129,6 +129,9 @@ class GoogleRating {
 enum NotificationKind {
   priceBelowThreshold,
   favoriteDrop,
+  // Media nazionale in aumento / in calo (notifiche push dal backend).
+  trendUp,
+  trendDown,
   weeklySummary,
   appUpdate,
 }
@@ -154,7 +157,9 @@ class AppNotification {
 
   bool get isPriceAlert =>
       kind == NotificationKind.priceBelowThreshold ||
-      kind == NotificationKind.favoriteDrop;
+      kind == NotificationKind.favoriteDrop ||
+      kind == NotificationKind.trendUp ||
+      kind == NotificationKind.trendDown;
 
   AppNotification copyWith({bool? read}) => AppNotification(
     id: id,
