@@ -1,0 +1,31 @@
+# Pubblicazione su Google Play. L'app bundle lo crea scripts/build_release.sh.
+default_platform(:android)
+
+AAB = "../build/app/outputs/bundle/release/app-release.aab"
+
+platform :android do
+  desc "Carica l'app bundle nella traccia di test interno"
+  lane :internal do
+    UI.user_error!("Manca #{AAB}: eseguire scripts/build_release.sh android") unless File.exist?(AAB)
+    upload_to_play_store(
+      track: "internal",
+      aab: AAB,
+      # La prima versione va caricata a mano dalla Play Console; poi i testi e
+      # le immagini della scheda si gestiscono lì.
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed"
+    )
+  end
+
+  desc "Porta la versione dal test interno alla produzione (rilascio graduale al 20%)"
+  lane :promote do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      rollout: "0.2",
+      skip_upload_changelogs: true
+    )
+  end
+end

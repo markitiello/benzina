@@ -1,0 +1,84 @@
+name: Release
+
+# Build di release a ogni tag "v*" (es. git tag v1.2.0 && git push --tags) o a
+# mano da Actions. La versione è quella del tag, il numero di build quello
+# dell'esecuzione.
+#
+# Secret (Settings → Secrets and variables → Actions):
+#   FIREBASE_RELEASE_JSON     contenuto di config/release.json (facoltativo:
+#                             senza, l'app esce senza notifiche push)
+#   ANDROID_KEYSTORE_BASE64   base64 -w0 android/upload-keystore.jks
+#   ANDROID_KEYSTORE_PASSWORD password del keystore (e della chiave "upload")
+#   PLAY_STORE_JSON_KEY       facoltativo: chiave del service account Google
+#                             Play; se c'è, la build va nel test interno
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    env:
+      # A livello di job: così la condizione dell'ultimo passo può leggerla.
+      PLAY_STORE_JSON_KEY_DATA: ${{ secrets.PLAY_STORE_JSON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Configurazione
+        env:
+          FIREBASE_RELEASE_JSON: ${{ secrets.FIREBASE_RELEASE_JSON }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$FIREBASE_RELEASE_JSON" ]; then
+            printf '%s' "$FIREBASE_RELEASE_JSON" > config/release.json
+          else
+            cp config/release.example.json config/release.json
+          fi
+          [ -n "$KEYSTORE_BASE64" ] || { echo "Manca il secret ANDROID_KEYSTORE_BASE64"; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
+          printf 'storeFile=upload-keystore.jks\nstorePassword=%s\nkeyAlias=upload\nkeyPassword=%s\n' \
+            "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
+      - run: flutter pub get
+      - name: Build
+        run: |
+          NAME="${GITHUB_REF_NAME#v}"
+          [[ "$GITHUB_REF_TYPE" == "tag" ]] || NAME=""
+          scripts/build_release.sh android ${NAME:+--build-name "$NAME"} --build-number "$GITHUB_RUN_NUMBER"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/symbols/
+      - name: Google Play (test interno)
+        if: env.PLAY_STORE_JSON_KEY_DATA != ''
+        working-directory: android
+        run: |
+          printf '%s' "$PLAY_STORE_JSON_KEY_DATA" > fastlane/play-store-key.json
+          gem install bundler --no-document
+          bundle install
+          bundle exec fastlane internal
+
+  ios:
+    # Verifica che l'app iOS compili. La firma e l'invio a TestFlight si fanno
+    # dal Mac con scripts/release.sh ios (richiedono certificati Apple).
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cp config/release.example.json config/release.json
+      - run: flutter build ios --release --no-codesign --dart-define-from-file config/release.json

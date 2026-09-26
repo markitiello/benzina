@@ -1,0 +1,8 @@
+# Copiare in android/key.properties (NON va nel repository).
+# Il keystore si crea con scripts/create_android_keystore.sh.
+# ATTENZIONE: se si perde il keystore non si possono più pubblicare
+# aggiornamenti (salvo "Play App Signing"): tenerne una copia al sicuro.
+storeFile=upload-keystore.jks
+storePassword=
+keyAlias=upload
+keyPassword=

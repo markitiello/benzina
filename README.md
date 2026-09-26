@@ -69,6 +69,47 @@ L'app avvisa quando la **media nazionale** del carburante scelto inizia a **sali
 
 Nota iOS: per la chiave APNs serve un account Apple Developer a pagamento. Le notifiche si provano su un iPhone reale oppure sul simulatore (Xcode 14 o successivo su Mac con chip Apple).
 
+## Pubblicazione
+
+Script in `scripts/`, configurazione di fastlane in `android/fastlane` e `ios/fastlane`. I segreti (keystore, password, chiavi, `config/release.json`) sono esclusi da git.
+
+### Una volta sola
+
+1. **Configurazione Firebase**: copiare `config/release.example.json` in `config/release.json` e compilarlo con i dati del progetto Firebase.
+2. **Android, firma**: `scripts/create_android_keystore.sh` crea `android/upload-keystore.jks` e `android/key.properties`. Conservare keystore e password in un posto sicuro: senza non si pubblicano aggiornamenti. Nella Play Console attivare "Play App Signing".
+3. **Android, Play Console**:
+   - creare l'app `it.benzina.benzina` e caricare a mano la prima versione;
+   - per fastlane: Configurazione → Accesso API → service account con permesso di rilascio, salvare la chiave JSON in `android/fastlane/play-store-key.json`.
+4. **iOS**: su un Mac con Xcode:
+   - impostare il team in Runner → Signing & Capabilities e creare l'app in App Store Connect;
+   - per fastlane: creare una chiave API in App Store Connect (Utenti e accessi → Integrazioni) e impostare `ASC_KEY_ID`, `ASC_ISSUER_ID` e `ASC_KEY_PATH`.
+5. fastlane richiede Ruby e Bundler: `gem install bundler`.
+
+### A ogni versione
+
+```sh
+scripts/build_release.sh android --build-name 1.1.0   # solo build: .aab
+scripts/build_release.sh ios --build-name 1.1.0       # solo build: .ipa (Mac)
+
+scripts/release.sh android --build-name 1.1.0         # build + test interno Play Store
+scripts/release.sh ios --build-name 1.1.0             # build + TestFlight (Mac)
+```
+
+- Gli script prima eseguono analisi e test.
+- La build viene offuscata; i simboli per leggere i crash restano in `build/symbols/`.
+- Il numero di build di default è il numero di commit, quindi è sempre crescente.
+- Dal test interno o da TestFlight si passa alla produzione dalle console degli store. Per Android si può anche usare `cd android && bundle exec fastlane promote`, che fa un rilascio graduale al 20%.
+
+### Con GitHub Actions
+
+- `.github/workflows/ci.yml`: formattazione, analisi e test a ogni push.
+- `.github/workflows/release.yml`: a ogni tag `v*` (es. `git tag v1.1.0 && git push --tags`):
+  - costruisce l'app bundle Android firmato e lo allega all'esecuzione;
+  - se c'è il secret `PLAY_STORE_JSON_KEY`, lo carica nel test interno;
+  - per iOS verifica solo che l'app compili; firma e invio a TestFlight si fanno dal Mac.
+
+  I secret necessari sono elencati all'inizio del file.
+
 ## Struttura
 
 ```

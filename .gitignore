@@ -46,3 +46,12 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Segreti per le build di release (vedi README, "Pubblicazione")
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+/config/release.json
+/android/fastlane/play-store-key.json
+/ios/fastlane/AuthKey_*.p8
+/build/symbols/

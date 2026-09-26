@@ -1,0 +1,26 @@
+# Pubblicazione su TestFlight. L'ipa la crea scripts/build_release.sh ios.
+#
+# Autenticazione con una chiave API di App Store Connect (Utenti e accessi →
+# Integrazioni → Chiavi): variabili ASC_KEY_ID, ASC_ISSUER_ID e
+# ASC_KEY_PATH (file .p8) oppure ASC_KEY_CONTENT (contenuto del .p8).
+default_platform(:ios)
+
+platform :ios do
+  desc "Carica l'ipa su TestFlight"
+  lane :beta do
+    ipa = Dir["../build/ios/ipa/*.ipa"].first
+    UI.user_error!("Manca l'ipa: eseguire scripts/build_release.sh ios") unless ipa
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: ENV["ASC_KEY_PATH"],
+      key_content: ENV["ASC_KEY_CONTENT"]
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ipa,
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
