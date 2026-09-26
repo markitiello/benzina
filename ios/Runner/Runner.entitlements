@@ -5,5 +5,8 @@
 	<!-- Notifiche push (APNs). Per la pubblicazione Xcode usa "production". -->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Firebase App Check con App Attest (richieste al backend). -->
+	<key>com.apple.developer.devicecheck.appattest-environment</key>
+	<string>production</string>
 </dict>
 </plist>

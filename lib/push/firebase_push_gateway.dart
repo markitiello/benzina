@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show Color;
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'firebase_config.dart';
 import 'push_gateway.dart';
 import 'push_message.dart';
 
@@ -31,12 +29,9 @@ class FirebasePushGateway implements PushGateway {
     description: 'Avvisi quando i prezzi iniziano a salire o a scendere',
   );
 
-  /// Inizializza Firebase; se non è configurato o fallisce, niente push.
+  /// Da chiamare dopo initFirebase(); se fallisce, niente push.
   static Future<PushGateway> create() async {
-    final options = FirebaseConfig.currentPlatform;
-    if (options == null) return const DisabledPushGateway();
     try {
-      await Firebase.initializeApp(options: options);
       final gateway = FirebasePushGateway._(
         FirebaseMessaging.instance,
         FlutterLocalNotificationsPlugin(),

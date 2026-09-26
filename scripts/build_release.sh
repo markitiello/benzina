@@ -11,9 +11,9 @@
 #   --build-number 42     numero di build, sempre crescente (default: numero di commit)
 #   --skip-tests          salta analisi e test
 #
-# La configurazione Firebase viene da config/release.json (copiare
-# config/release.example.json). Il codice viene offuscato; i simboli per
-# leggere i crash finiscono in build/symbols/.
+# Indirizzo del backend e configurazione Firebase vengono da
+# config/release.json (copiare config/release.example.json). Il codice viene
+# offuscato; i simboli per leggere i crash finiscono in build/symbols/.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -38,6 +38,11 @@ die() { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
 CONFIG=config/release.json
 [[ -f "$CONFIG" ]] || die "Manca $CONFIG (copiare config/release.example.json e compilarlo)."
+grep -q '"BENZINA_API_URL": *"https://' "$CONFIG" \
+  || die "$CONFIG: BENZINA_API_URL deve essere l'indirizzo https del backend."
+# La chiave statica si estrae dall'app: nelle build pubblicate si usa App Check.
+grep -q '"BENZINA_API_KEY"' "$CONFIG" \
+  && die "$CONFIG: togliere BENZINA_API_KEY, vale solo per lo sviluppo."
 if grep -q '": ""' "$CONFIG"; then
   log "Attenzione: $CONFIG ha valori vuoti, le notifiche push non funzioneranno."
 fi

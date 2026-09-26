@@ -5,8 +5,8 @@ name: Release
 # dell'esecuzione.
 #
 # Secret (Settings → Secrets and variables → Actions):
-#   FIREBASE_RELEASE_JSON     contenuto di config/release.json (facoltativo:
-#                             senza, l'app esce senza notifiche push)
+#   FIREBASE_RELEASE_JSON     contenuto di config/release.json: indirizzo del
+#                             backend e configurazione Firebase
 #   ANDROID_KEYSTORE_BASE64   base64 -w0 android/upload-keystore.jks
 #   ANDROID_KEYSTORE_PASSWORD password del keystore (e della chiave "upload")
 #   PLAY_STORE_JSON_KEY       facoltativo: chiave del service account Google
@@ -40,11 +40,8 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          if [ -n "$FIREBASE_RELEASE_JSON" ]; then
-            printf '%s' "$FIREBASE_RELEASE_JSON" > config/release.json
-          else
-            cp config/release.example.json config/release.json
-          fi
+          [ -n "$FIREBASE_RELEASE_JSON" ] || { echo "Manca il secret FIREBASE_RELEASE_JSON"; exit 1; }
+          printf '%s' "$FIREBASE_RELEASE_JSON" > config/release.json
           [ -n "$KEYSTORE_BASE64" ] || { echo "Manca il secret ANDROID_KEYSTORE_BASE64"; exit 1; }
           echo "$KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
           printf 'storeFile=upload-keystore.jks\nstorePassword=%s\nkeyAlias=upload\nkeyPassword=%s\n' \

@@ -281,12 +281,9 @@ class MockFuelRepository implements FuelRepository {
     final station = _lookup(stationId);
     if (station == null) return null;
     final t = _generated[stationId]!.$1;
-    final five = ((t.rating - 3) / 2).clamp(0.1, 0.8);
-    final rest = 1 - five;
     return GoogleRating(
       rating: t.rating,
       count: t.reviewCount,
-      distribution: [five, rest * 0.55, rest * 0.2, rest * 0.1, rest * 0.15],
       reviews: const [
         Review(
           author: 'Utente di prova',

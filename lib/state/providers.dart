@@ -142,14 +142,15 @@ final areaTrendProvider = FutureProvider.family<List<PricePoint>, TrendKey>((
       );
 });
 
-/// Media nazionale di oggi per il carburante delle impostazioni.
-final nationalAverageProvider = FutureProvider<double>((ref) async {
+/// Ultima media nazionale per il carburante delle impostazioni; `null` se il
+/// backend non ha ancora dati.
+final nationalAverageProvider = FutureProvider<double?>((ref) async {
   final s = ref.watch(settingsProvider);
   final trend = await ref.watch(
     nationalTrendProvider((fuel: s.fuel, mode: s.effectiveMode, days: 7))
         .future,
   );
-  return trend.last.price;
+  return trend.lastOrNull?.price;
 });
 
 final stationProvider = FutureProvider.family<Station?, String>(

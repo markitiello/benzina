@@ -2,8 +2,8 @@ import 'package:latlong2/latlong.dart';
 
 import 'models.dart';
 
-/// Accesso ai dati su prezzi e distributori. Oggi c'è solo l'implementazione
-/// di prova ([MockFuelRepository]); quella reale leggerà dal backend.
+/// Accesso ai dati su prezzi e distributori. Due implementazioni: i dati
+/// di prova ([MockFuelRepository]) e il backend ([ApiFuelRepository]).
 abstract interface class FuelRepository {
   /// Distributori entro [radiusKm] da [center] che vendono [fuel],
   /// ordinati dal più economico.

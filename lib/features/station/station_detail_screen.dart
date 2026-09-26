@@ -302,59 +302,21 @@ class _Reviews extends ConsumerWidget {
               const SizedBox(height: 14),
               Row(
                 children: [
-                  SizedBox(
-                    width: 96,
+                  Text(
+                    formatRating(r.rating),
+                    style: displayStyle(fontSize: 44, height: 1, color: c.ink),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          formatRating(r.rating),
-                          style: displayStyle(
-                            fontSize: 44,
-                            height: 1,
-                            color: c.ink,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
                         StarRow(rating: r.rating),
                         const SizedBox(height: 4),
                         Text(
                           '${r.count} recensioni',
                           style: TextStyle(fontSize: 12, color: c.muted),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        for (var i = 0; i < 5; i++)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2.5),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 10,
-                                  child: Text(
-                                    '${5 - i}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(3),
-                                    child: LinearProgressIndicator(
-                                      value: r.distribution[i],
-                                      minHeight: 6,
-                                      color: c.star,
-                                      backgroundColor: c.lineSoft,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -366,14 +328,16 @@ class _Reviews extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _ReviewTile(review: review),
               ],
-              const SizedBox(height: 14),
-              OutlinedButton(
-                onPressed: () => openExternal(context, r.mapsUrl),
-                child: const Text('Leggi tutte su Google Maps'),
-              ),
+              if (r.mapsUrl case final url?) ...[
+                const SizedBox(height: 14),
+                OutlinedButton(
+                  onPressed: () => openExternal(context, url),
+                  child: const Text('Leggi tutte su Google Maps'),
+                ),
+              ],
               const SizedBox(height: 6),
               Text(
-                'Valutazioni e recensioni fornite da Google',
+                r.attribution,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 11, color: c.muted),
               ),
@@ -415,11 +379,16 @@ class _ReviewTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    review.author,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                  GestureDetector(
+                    onTap: review.authorUrl == null
+                        ? null
+                        : () => openExternal(context, review.authorUrl!),
+                    child: Text(
+                      review.author,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   Row(

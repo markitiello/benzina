@@ -98,9 +98,13 @@ class Review {
     required this.rating,
     required this.relativeTime,
     required this.text,
+    this.authorUrl,
   });
 
   final String author;
+
+  /// Profilo Google dell'autore: Google chiede di mostrarlo con il nome.
+  final Uri? authorUrl;
   final int rating;
   final String relativeTime;
   final String text;
@@ -112,18 +116,20 @@ class GoogleRating {
   const GoogleRating({
     required this.rating,
     required this.count,
-    required this.distribution,
     required this.reviews,
     required this.mapsUrl,
+    this.attribution = 'Valutazioni e recensioni fornite da Google',
   });
 
   final double rating;
   final int count;
 
-  /// Quota di recensioni per 5, 4, 3, 2 e 1 stella (somma 1).
-  final List<double> distribution;
+  /// Al massimo 5, scelte da Google.
   final List<Review> reviews;
-  final Uri mapsUrl;
+  final Uri? mapsUrl;
+
+  /// Testo di attribuzione da mostrare (termini d'uso di Google).
+  final String attribution;
 }
 
 enum NotificationKind {
