@@ -137,16 +137,6 @@ class _NotificationTile extends ConsumerWidget {
     final n = notification;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final (icon, bg, fg) = switch (n.kind) {
-      NotificationKind.priceBelowThreshold => (
-        Icons.south_rounded,
-        c.cheapChipBg,
-        c.cheapChipFg,
-      ),
-      NotificationKind.favoriteDrop => (
-        Icons.favorite_border_rounded,
-        isDark ? const Color(0xFF3A2E10) : const Color(0xFFFBEFD0),
-        isDark ? const Color(0xFFF2C75C) : const Color(0xFF7A5200),
-      ),
       NotificationKind.trendDown => (
         Icons.trending_down_rounded,
         c.cheapChipBg,
@@ -156,11 +146,6 @@ class _NotificationTile extends ConsumerWidget {
         Icons.trending_up_rounded,
         isDark ? const Color(0xFF3A2412) : const Color(0xFFFBE7D4),
         isDark ? const Color(0xFFF5B98A) : const Color(0xFF7A3905),
-      ),
-      NotificationKind.weeklySummary => (
-        Icons.show_chart_rounded,
-        isDark ? c.surfaceMuted : c.ground,
-        c.ink,
       ),
       NotificationKind.appUpdate => (
         Icons.download_rounded,
@@ -172,12 +157,7 @@ class _NotificationTile extends ConsumerWidget {
     void open() {
       ref.read(notificationsProvider.notifier).markRead(n.id);
       switch (n.kind) {
-        case NotificationKind.priceBelowThreshold ||
-            NotificationKind.favoriteDrop:
-          if (n.stationId != null) context.push('/distributore/${n.stationId}');
-        case NotificationKind.weeklySummary ||
-            NotificationKind.trendUp ||
-            NotificationKind.trendDown:
+        case NotificationKind.trendUp || NotificationKind.trendDown:
           context.go('/andamento');
         case NotificationKind.appUpdate:
           context.push('/impostazioni');

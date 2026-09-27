@@ -31,6 +31,12 @@ class FavoritesScreen extends ConsumerWidget {
                 color: c.ink,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Prezzi di ${fuelDescription(s.fuel, s.effectiveMode).toLowerCase()}, '
+              'il carburante scelto nelle impostazioni.',
+              style: TextStyle(fontSize: 13, color: c.muted),
+            ),
             const SizedBox(height: 16),
             AsyncBody(
               value: stations,
@@ -66,6 +72,12 @@ class FavoritesScreen extends ConsumerWidget {
                               subtitle:
                                   'Agg. ${formatUpdated(list[i].updatedAt)}',
                               price: list[i].priceFor(s.fuel, s.effectiveMode),
+                              priceCaption:
+                                  list[i].priceFor(s.fuel, s.effectiveMode) ==
+                                      null
+                                  ? 'non disponibile'
+                                  : '${priceUnit(s.fuel)} · '
+                                        '${fuelDescription(s.fuel, s.effectiveMode)}',
                             ),
                           ],
                         ],

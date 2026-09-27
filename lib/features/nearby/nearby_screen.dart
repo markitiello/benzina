@@ -362,11 +362,16 @@ class StationTile extends StatelessWidget {
     required this.station,
     required this.subtitle,
     this.price,
+    this.priceCaption,
   });
 
   final Station station;
   final String subtitle;
   final double? price;
+
+  /// Sotto il prezzo, es. "€/l · Benzina self". Se c'è, al posto di un
+  /// prezzo mancante compare "—".
+  final String? priceCaption;
 
   @override
   Widget build(BuildContext context) {
@@ -414,13 +419,23 @@ class StationTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (price != null)
-              Text(
-                formatPrice(price!),
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                ),
+            if (price != null || priceCaption != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    price == null ? '—' : formatPrice(price!),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (priceCaption != null)
+                    Text(
+                      priceCaption!,
+                      style: TextStyle(fontSize: 11, color: c.muted),
+                    ),
+                ],
               ),
           ],
         ),

@@ -176,12 +176,9 @@ class TrendAlert {
 }
 
 enum NotificationKind {
-  priceBelowThreshold,
-  favoriteDrop,
   // Media nazionale in aumento / in calo (notifiche push dal backend).
   trendUp,
   trendDown,
-  weeklySummary,
   appUpdate,
 }
 
@@ -193,7 +190,6 @@ class AppNotification {
     required this.body,
     required this.time,
     this.read = false,
-    this.stationId,
   });
 
   final String id;
@@ -202,13 +198,9 @@ class AppNotification {
   final String body;
   final DateTime time;
   final bool read;
-  final String? stationId;
 
   bool get isPriceAlert =>
-      kind == NotificationKind.priceBelowThreshold ||
-      kind == NotificationKind.favoriteDrop ||
-      kind == NotificationKind.trendUp ||
-      kind == NotificationKind.trendDown;
+      kind == NotificationKind.trendUp || kind == NotificationKind.trendDown;
 
   AppNotification copyWith({bool? read}) => AppNotification(
     id: id,
@@ -217,6 +209,5 @@ class AppNotification {
     body: body,
     time: time,
     read: read ?? this.read,
-    stationId: stationId,
   );
 }

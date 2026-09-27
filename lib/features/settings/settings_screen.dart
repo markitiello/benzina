@@ -139,29 +139,6 @@ class SettingsScreen extends ConsumerWidget {
                 value: s.trendAlerts,
                 onChanged: (v) => _setTrendAlerts(context, ref, v),
               ),
-              _SwitchRow(
-                title: 'Avviso prezzo sotto soglia',
-                subtitle:
-                    '${s.fuel.label} ${s.fuel.hasServiceModes ? '${s.mode.label.toLowerCase()} ' : ''}'
-                    'sotto ${formatPrice(s.threshold)} €/l',
-                value: s.thresholdAlert,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(thresholdAlert: v)),
-              ),
-              _SwitchRow(
-                title: 'Variazioni dei preferiti',
-                subtitle: 'Quando un preferito cambia prezzo',
-                value: s.favoriteAlerts,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(favoriteAlerts: v)),
-              ),
-              _SwitchRow(
-                title: 'Riepilogo settimanale',
-                subtitle: 'Ogni lunedì mattina',
-                value: s.weeklySummary,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(weeklySummary: v)),
-              ),
             ],
           ),
           const SizedBox(height: 8),

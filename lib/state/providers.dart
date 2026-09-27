@@ -26,10 +26,6 @@ class AppSettings {
     this.mode = ServiceMode.self,
     this.radiusKm = 5,
     this.themeMode = ThemeMode.system,
-    this.thresholdAlert = true,
-    this.threshold = 1.750,
-    this.favoriteAlerts = true,
-    this.weeklySummary = false,
     this.trendAlerts = true,
   });
 
@@ -37,10 +33,6 @@ class AppSettings {
   final ServiceMode mode;
   final double radiusKm;
   final ThemeMode themeMode;
-  final bool thresholdAlert;
-  final double threshold;
-  final bool favoriteAlerts;
-  final bool weeklySummary;
 
   /// Notifica push quando la media nazionale del carburante scelto inizia a
   /// salire o a scendere (vedi lib/push/).
@@ -55,10 +47,6 @@ class AppSettings {
     ServiceMode? mode,
     double? radiusKm,
     ThemeMode? themeMode,
-    bool? thresholdAlert,
-    double? threshold,
-    bool? favoriteAlerts,
-    bool? weeklySummary,
     bool? trendAlerts,
   }) {
     return AppSettings(
@@ -66,10 +54,6 @@ class AppSettings {
       mode: mode ?? this.mode,
       radiusKm: radiusKm ?? this.radiusKm,
       themeMode: themeMode ?? this.themeMode,
-      thresholdAlert: thresholdAlert ?? this.thresholdAlert,
-      threshold: threshold ?? this.threshold,
-      favoriteAlerts: favoriteAlerts ?? this.favoriteAlerts,
-      weeklySummary: weeklySummary ?? this.weeklySummary,
       trendAlerts: trendAlerts ?? this.trendAlerts,
     );
   }

@@ -1,3 +1,5 @@
+import '../data/models.dart';
+
 import 'package:intl/intl.dart';
 
 final _price = NumberFormat('0.000', 'it_IT');
@@ -71,3 +73,11 @@ String formatNotificationTime(DateTime d, {DateTime? now}) {
   if (diff < 7) return _weekdays[d.weekday - 1];
   return formatShortDate(d);
 }
+
+/// "Benzina self", "Diesel servito", "GPL", "Metano".
+String fuelDescription(FuelType fuel, ServiceMode mode) => fuel.hasServiceModes
+    ? '${fuel.label} ${mode.label.toLowerCase()}'
+    : fuel.label;
+
+/// Unità del prezzo: il metano si vende al kg.
+String priceUnit(FuelType fuel) => fuel == FuelType.metano ? '€/kg' : '€/l';

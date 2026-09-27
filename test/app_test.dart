@@ -85,6 +85,24 @@ void main() {
     );
   });
 
+  testWidgets('preferiti: il prezzo dice a quale carburante si riferisce', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildApp());
+    await passSplash(tester);
+
+    await tester.tap(find.text('Q8 Easy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Aggiungi ai preferiti'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Preferiti'));
+    await tester.pumpAndSettle();
+    expect(find.text('€/l · Benzina self'), findsOneWidget);
+  });
+
   testWidgets('notifiche: segna tutte come lette', (tester) async {
     await tester.pumpWidget(buildApp());
     await passSplash(tester);
