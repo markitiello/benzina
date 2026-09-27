@@ -90,7 +90,6 @@ L'app avvisa quando la **media nazionale** del carburante scelto inizia a **sali
 
 - L'app si iscrive al *topic* del carburante scelto (es. `trend_benzina_self`, vedi `lib/push/push_topics.dart`) e cambia iscrizione quando cambia carburante. Si disattiva da **Impostazioni → Prezzi in salita o in discesa**.
 - La schermata **Notifiche** mostra le tendenze del carburante scelto degli ultimi 30 giorni, lette dal backend (`/v1/trends/alerts`), più le notifiche push arrivate con l'app aperta. Se la stessa tendenza arriva in tutti e due i modi, compare una volta sola. Toccandole si apre **Andamento**.
-- Per ora le notifiche lette non vengono salvate: dopo un riavvio tornano "non lette".
 - Senza Firebase configurato l'app funziona lo stesso, senza notifiche push.
 
 ### Attivarle
@@ -178,6 +177,6 @@ Tutte le schermate leggono i dati da `FuelRepository` (`lib/data/fuel_repository
 - [ ] Se si mostrano dati Google sulla mappa, passare da `flutter_map` a `google_maps_flutter` (termini d'uso di Google).
 - [ ] Orari di apertura: il MIMIT li pubblica in un file a parte, non ancora importato dal backend.
 - [ ] Notifiche personali (soglia di prezzo, preferiti): richiedono di registrare i dispositivi sul backend.
-- [ ] Salvataggio di impostazioni e preferiti sul dispositivo.
+- [x] Salvataggio di impostazioni, preferiti e notifiche lette sul dispositivo (`lib/state/local_store.dart`, con `shared_preferences`).
 - [ ] Nome della zona dalla posizione (reverse geocoding).
 - [ ] Tile della mappa: i server di OpenStreetMap non sono adatti al traffico di un'app pubblicata, serve un fornitore di tile.

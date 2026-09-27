@@ -9,10 +9,12 @@ import 'firebase/firebase_setup.dart';
 import 'push/firebase_push_gateway.dart';
 import 'push/push_gateway.dart';
 import 'push/push_providers.dart';
+import 'state/local_store.dart';
 import 'state/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final store = await DeviceStore.open();
   final firebase = await initFirebase();
   final push = firebase
       ? await FirebasePushGateway.create()
@@ -20,6 +22,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
+        localStoreProvider.overrideWithValue(store),
         pushGatewayProvider.overrideWithValue(push),
         // Senza BENZINA_API_URL restano i dati di prova.
         if (ApiConfig.isConfigured)

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -7,6 +9,7 @@ import '../data/location_service.dart';
 import '../data/mock_fuel_repository.dart';
 import '../data/models.dart';
 import '../push/push_topics.dart';
+import 'local_store.dart';
 
 // --- Servizi (sostituibili nei test con `overrides`) -----------------------
 
@@ -17,6 +20,9 @@ final fuelRepositoryProvider = Provider<FuelRepository>(
 final locationServiceProvider = Provider<LocationService>(
   (ref) => GeolocatorLocationService(),
 );
+
+/// Sostituito in main.dart con DeviceStore (dati salvati sul telefono).
+final localStoreProvider = Provider<LocalStore>((ref) => MemoryStore());
 
 // --- Impostazioni -----------------------------------------------------------
 
@@ -57,19 +63,61 @@ class AppSettings {
       trendAlerts: trendAlerts ?? this.trendAlerts,
     );
   }
+
+  Map<String, Object> toJson() => {
+    'fuel': fuel.name,
+    'mode': mode.name,
+    'radiusKm': radiusKm,
+    'themeMode': themeMode.name,
+    'trendAlerts': trendAlerts,
+  };
+
+  /// Valori mancanti o non validi (es. da una versione precedente) tornano
+  /// a quelli predefiniti.
+  factory AppSettings.fromJson(Map<String, Object?> json) {
+    const d = AppSettings();
+    T pick<T extends Enum>(List<T> values, Object? name, T fallback) =>
+        values.asNameMap()[name] ?? fallback;
+    final radius = json['radiusKm'];
+    return AppSettings(
+      fuel: pick(FuelType.values, json['fuel'], d.fuel),
+      mode: pick(ServiceMode.values, json['mode'], d.mode),
+      radiusKm: radius is num && radiusOptions.contains(radius.toDouble())
+          ? radius.toDouble()
+          : d.radiusKm,
+      themeMode: pick(ThemeMode.values, json['themeMode'], d.themeMode),
+      trendAlerts: json['trendAlerts'] is bool
+          ? json['trendAlerts'] as bool
+          : d.trendAlerts,
+    );
+  }
 }
 
-// TODO: salvare le impostazioni sul dispositivo (shared_preferences).
+/// Impostazioni, salvate sul dispositivo a ogni modifica.
 class SettingsNotifier extends Notifier<AppSettings> {
-  SettingsNotifier([this._initial = const AppSettings()]);
+  /// Con [initial] (nei test) non si leggono quelle salvate.
+  SettingsNotifier([this._initial]);
 
-  final AppSettings _initial;
+  final AppSettings? _initial;
 
   @override
-  AppSettings build() => _initial;
+  AppSettings build() {
+    if (_initial case final initial?) return initial;
+    final saved = ref.read(localStoreProvider).getString(StoreKeys.settings);
+    if (saved == null) return const AppSettings();
+    try {
+      return AppSettings.fromJson(jsonDecode(saved) as Map<String, Object?>);
+    } catch (_) {
+      return const AppSettings();
+    }
+  }
 
-  void update(AppSettings Function(AppSettings s) change) =>
-      state = change(state);
+  void update(AppSettings Function(AppSettings s) change) {
+    state = change(state);
+    ref
+        .read(localStoreProvider)
+        .setString(StoreKeys.settings, jsonEncode(state.toJson()));
+  }
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(
@@ -163,12 +211,19 @@ final googleRatingProvider = FutureProvider.family<GoogleRating?, String>(
 
 // --- Preferiti ---------------------------------------------------------------
 
+/// Id dei distributori preferiti, salvati sul dispositivo.
 class FavoritesNotifier extends Notifier<Set<String>> {
   @override
-  Set<String> build() => const {};
+  Set<String> build() => {
+    ...?ref.read(localStoreProvider).getStringList(StoreKeys.favorites),
+  };
 
-  void toggle(String id) =>
-      state = state.contains(id) ? ({...state}..remove(id)) : {...state, id};
+  void toggle(String id) {
+    state = state.contains(id) ? ({...state}..remove(id)) : {...state, id};
+    ref
+        .read(localStoreProvider)
+        .setStringList(StoreKeys.favorites, state.toList());
+  }
 }
 
 final favoritesProvider = NotifierProvider<FavoritesNotifier, Set<String>>(
@@ -194,7 +249,7 @@ final trendAlertsProvider = FutureProvider<List<TrendAlert>>((ref) async {
 
 /// Notifiche della schermata Notifiche: le tendenze del backend più le
 /// notifiche push ricevute mentre l'app è aperta.
-// TODO: salvare sul dispositivo quali notifiche sono state lette.
+/// Quali notifiche sono state lette si salva sul dispositivo.
 class NotificationsNotifier extends Notifier<List<AppNotification>> {
   @override
   List<AppNotification> build() {
@@ -205,10 +260,34 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     return const [];
   }
 
+  /// Id delle ultime notifiche lette da ricordare.
+  static const _maxRead = 300;
+
+  Set<String> get _readIds => {
+    ...?ref.read(localStoreProvider).getStringList(StoreKeys.readNotifications),
+  };
+
+  void _saveRead(Iterable<String> ids) {
+    final all = [..._readIds.where((id) => !ids.contains(id)), ...ids];
+    ref
+        .read(localStoreProvider)
+        .setStringList(
+          StoreKeys.readNotifications,
+          all.skip(all.length > _maxRead ? all.length - _maxRead : 0).toList(),
+        );
+  }
+
+  AppNotification _withSavedRead(AppNotification n, Set<String> readIds) =>
+      !n.read && readIds.contains(n.id) ? n.copyWith(read: true) : n;
+
   /// Aggiunge le notifiche nuove e ordina dalla più recente.
   void _merge(Iterable<AppNotification> incoming) {
     final known = {for (final n in state) n.id};
-    final added = incoming.where((n) => !known.contains(n.id)).toList();
+    final readIds = _readIds;
+    final added = incoming
+        .where((n) => !known.contains(n.id))
+        .map((n) => _withSavedRead(n, readIds))
+        .toList();
     if (added.isEmpty) return;
     state = [...state, ...added]..sort((a, b) => b.time.compareTo(a.time));
   }
@@ -216,13 +295,19 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
   /// Aggiunge in cima una notifica ricevuta (es. push). Ignora i doppioni.
   void add(AppNotification notification) {
     if (state.any((n) => n.id == notification.id)) return;
-    state = [notification, ...state];
+    state = [_withSavedRead(notification, _readIds), ...state];
+    if (notification.read) _saveRead([notification.id]);
   }
 
-  void markRead(String id) =>
-      state = [for (final n in state) n.id == id ? n.copyWith(read: true) : n];
+  void markRead(String id) {
+    state = [for (final n in state) n.id == id ? n.copyWith(read: true) : n];
+    _saveRead([id]);
+  }
 
-  void markAllRead() => state = [for (final n in state) n.copyWith(read: true)];
+  void markAllRead() {
+    state = [for (final n in state) n.copyWith(read: true)];
+    _saveRead(state.map((n) => n.id));
+  }
 }
 
 final notificationsProvider =
