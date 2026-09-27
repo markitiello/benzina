@@ -49,32 +49,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final secondary = isDark ? c.muted : const Color(0xFF3B2E08);
     final locating = ref.watch(locationProvider).isLoading;
 
+    const logoSize = 112.0;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(40, 0, 40, 48),
-          child: Column(
+      // Il logo sta al centro esatto dello schermo, come nella splash nativa
+      // che precede questa schermata: nel passaggio non si sposta.
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final centerY = constraints.maxHeight / 2;
+          return Stack(
             children: [
-              Expanded(
+              Positioned(
+                top: centerY - logoSize / 2,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: BenzinaLogo(
+                    size: logoSize,
+                    background: isDark ? c.amber : c.onAmber,
+                    foreground: isDark ? c.onAmber : c.amber,
+                    shadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? c.amber.withValues(alpha: 0.25)
+                            : const Color(0x4016181D),
+                        blurRadius: isDark ? 60 : 30,
+                        offset: isDark ? Offset.zero : const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: centerY + logoSize / 2 + 20,
+                left: 40,
+                right: 40,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    BenzinaLogo(
-                      size: 112,
-                      background: isDark ? c.amber : c.onAmber,
-                      foreground: isDark ? c.onAmber : c.amber,
-                      shadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? c.amber.withValues(alpha: 0.25)
-                              : const Color(0x4016181D),
-                          blurRadius: isDark ? 60 : 30,
-                          offset: isDark ? Offset.zero : const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
                     Text(
                       'Benzina',
                       style: displayStyle(
@@ -85,6 +98,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     ),
                     Text(
                       'Il pieno al prezzo giusto',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -94,32 +108,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   ],
                 ),
               ),
-              SizedBox(
-                width: 160,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    minHeight: 6,
-                    color: isDark ? c.amber : c.onAmber,
-                    backgroundColor: isDark ? c.line : const Color(0x2E16181D),
-                  ),
+              Positioned(
+                left: 40,
+                right: 40,
+                bottom: 48 + bottomInset,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 160,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: LinearProgressIndicator(
+                          minHeight: 6,
+                          color: isDark ? c.amber : c.onAmber,
+                          backgroundColor: isDark
+                              ? c.line
+                              : const Color(0x2E16181D),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      locating
+                          ? 'Cerco la tua posizione…'
+                          : 'Cerco i distributori vicino a te…',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: secondary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Dati prezzi: MIMIT · Osservaprezzi Carburanti',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: secondary),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                locating
-                    ? 'Cerco la tua posizione…'
-                    : 'Cerco i distributori vicino a te…',
-                style: TextStyle(fontSize: 14, color: secondary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Dati prezzi: MIMIT · Osservaprezzi Carburanti',
-                style: TextStyle(fontSize: 12, color: secondary),
-              ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
