@@ -22,6 +22,10 @@ abstract interface class PushGateway {
 
   /// La notifica che ha avviato l'app, se l'app era chiusa.
   Future<PushMessage?> launchMessage();
+
+  /// Token FCM del dispositivo, per mandare una notifica di prova solo a
+  /// questo telefono (console Firebase → Messaging → Invia messaggio di prova).
+  Future<String?> deviceToken();
 }
 
 /// Nessuna notifica push: Firebase non configurato o test.
@@ -48,4 +52,7 @@ class DisabledPushGateway implements PushGateway {
 
   @override
   Future<PushMessage?> launchMessage() async => null;
+
+  @override
+  Future<String?> deviceToken() async => null;
 }

@@ -134,11 +134,36 @@ class FirebasePushGateway implements PushGateway {
   }
 
   @override
-  Future<void> subscribe(String topic) => _messaging.subscribeToTopic(topic);
+  Future<void> subscribe(String topic) async {
+    await _waitForApns();
+    await _messaging.subscribeToTopic(topic);
+  }
 
   @override
-  Future<void> unsubscribe(String topic) =>
-      _messaging.unsubscribeFromTopic(topic);
+  Future<void> unsubscribe(String topic) async {
+    await _waitForApns();
+    await _messaging.unsubscribeFromTopic(topic);
+  }
+
+  @override
+  Future<String?> deviceToken() async {
+    await _waitForApns();
+    return _messaging.getToken();
+  }
+
+  /// iOS: iscrizioni e token FCM richiedono il token APNs, che Apple fornisce
+  /// qualche istante dopo l'avvio. Senza, Firebase rifiuta l'iscrizione.
+  Future<void> _waitForApns() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    for (var i = 0; i < 30; i++) {
+      if (await _messaging.getAPNSToken() != null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    throw StateError(
+      'Token APNs non disponibile: controllare la chiave APNs in Firebase e '
+      'la capacità Push Notifications in Xcode.',
+    );
+  }
 
   @override
   Stream<PushMessage> get received => _received.stream;

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import '../push/push_message.dart';
 import '../push/push_providers.dart';
+import '../push/push_status.dart';
 import '../push/push_topics.dart';
 import '../push/topic_sync.dart';
 import '../state/providers.dart';
@@ -48,12 +49,23 @@ class _BenzinaAppState extends ConsumerState<BenzinaApp> {
     // scatterebbe a ogni modifica delle impostazioni, anche del tema.)
     ref.listenManual<String>(
       settingsProvider.select((s) => desiredTopics(s).join(',')),
-      (_, key) => syncTrendTopics(
-        push,
-        key.isEmpty ? const {} : key.split(',').toSet(),
-      ),
+      (_, key) => _syncTopics(key.isEmpty ? const {} : key.split(',').toSet()),
       fireImmediately: true,
     );
+  }
+
+  Future<void> _syncTopics(Set<String> topics) async {
+    final status = ref.read(pushStatusProvider.notifier);
+    try {
+      final allowed = await syncTrendTopics(
+        ref.read(pushGatewayProvider),
+        topics,
+      );
+      if (mounted) status.synced(topics, permitted: allowed);
+    } catch (e) {
+      debugPrint('Iscrizione alle notifiche non riuscita: $e');
+      if (mounted) status.failed(e);
+    }
   }
 
   void _open(PushMessage message) {

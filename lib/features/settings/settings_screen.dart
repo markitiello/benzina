@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/directions.dart';
@@ -9,6 +11,7 @@ import '../../core/widgets/benzina_logo.dart';
 import '../../core/widgets/common.dart';
 import '../../data/models.dart';
 import '../../push/push_providers.dart';
+import '../../push/push_status.dart';
 import '../../state/providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -139,6 +142,11 @@ class SettingsScreen extends ConsumerWidget {
                 value: s.trendAlerts,
                 onChanged: (v) => _setTrendAlerts(context, ref, v),
               ),
+              _Row(
+                title: 'Stato notifiche push',
+                value: ref.watch(pushStatusProvider).summary,
+                onTap: () => _showPushStatus(context, ref),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -198,6 +206,67 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   /// Attivando gli avvisi di tendenza si chiede il permesso per le notifiche.
+  /// Dettagli per capire perché una notifica non arriva. Il token del
+  /// dispositivo si vede solo nelle build di debug.
+  Future<void> _showPushStatus(BuildContext context, WidgetRef ref) async {
+    final status = ref.read(pushStatusProvider);
+    final token = kDebugMode
+        ? await ref
+              .read(pushGatewayProvider)
+              .deviceToken()
+              .catchError((Object e) => 'non disponibile ($e)')
+        : null;
+    if (!context.mounted) return;
+    final lines = [
+      if (!status.available)
+        'Firebase non è configurato in questa build (valori FIREBASE_… '
+            'mancanti in config/dev.json o config/release.json).'
+      else ...[
+        'Permesso: ${switch (status.permitted) {
+          true => 'concesso',
+          false => 'negato (attivalo nelle impostazioni del telefono)',
+          null => 'non ancora chiesto',
+        }}',
+        'Iscritto a: ${status.topics.isEmpty ? '—' : status.topics.join(', ')}',
+        if (status.error != null) 'Errore: ${status.error}',
+      ],
+    ];
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Notifiche push'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final line in lines)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(line),
+                ),
+              if (token != null) ...[
+                const Text('Token del dispositivo:'),
+                SelectableText(token, style: const TextStyle(fontSize: 12)),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          if (token != null)
+            TextButton(
+              onPressed: () => Clipboard.setData(ClipboardData(text: token)),
+              child: const Text('Copia token'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Chiudi'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _setTrendAlerts(
     BuildContext context,
     WidgetRef ref,

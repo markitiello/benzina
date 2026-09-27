@@ -14,9 +14,12 @@ import 'app_test.dart' show buildApp, passSplash;
 
 /// Firebase finto: registra iscrizioni e permette di simulare notifiche.
 class FakePushGateway implements PushGateway {
-  FakePushGateway({this.permission = true});
+  FakePushGateway({this.permission = true, this.failSubscribe = false});
 
   final bool permission;
+
+  /// Simula un'iscrizione rifiutata (es. token APNs mancante su iOS).
+  final bool failSubscribe;
   final subscribed = <String>{};
   final calls = <String>[];
   final receivedController = StreamController<PushMessage>.broadcast();
@@ -33,6 +36,7 @@ class FakePushGateway implements PushGateway {
 
   @override
   Future<void> subscribe(String topic) async {
+    if (failSubscribe) throw StateError('Token APNs non disponibile');
     calls.add('+$topic');
     subscribed.add(topic);
   }
@@ -51,6 +55,9 @@ class FakePushGateway implements PushGateway {
 
   @override
   Future<PushMessage?> launchMessage() async => null;
+
+  @override
+  Future<String?> deviceToken() async => 'token-di-prova';
 }
 
 PushMessage trendMessage({String direction = 'down'}) => PushMessage(
@@ -203,6 +210,40 @@ void main() {
       await tester.tap(find.text('Prezzi in salita o in discesa'));
       await tester.pumpAndSettle();
       expect(push.subscribed, isEmpty);
+    });
+
+    Future<void> openSettings(WidgetTester tester, FakePushGateway push) async {
+      await tester.pumpWidget(buildApp(push: push));
+      await passSplash(tester);
+      await tester.tap(find.byTooltip('Impostazioni'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Stato notifiche push'), 200);
+    }
+
+    testWidgets('lo stato delle push mostra topic e token', (tester) async {
+      await openSettings(tester, FakePushGateway());
+      expect(find.text('Attive'), findsOneWidget);
+
+      await tester.tap(find.text('Stato notifiche push'));
+      await tester.pumpAndSettle();
+      expect(find.text('Iscritto a: trend_benzina_self'), findsOneWidget);
+      expect(find.text('token-di-prova'), findsOneWidget);
+    });
+
+    testWidgets('lo stato delle push segnala il permesso negato', (
+      tester,
+    ) async {
+      await openSettings(tester, FakePushGateway(permission: false));
+      expect(find.text('Permesso negato'), findsOneWidget);
+    });
+
+    testWidgets('un\'iscrizione rifiutata compare come errore', (tester) async {
+      await openSettings(tester, FakePushGateway(failSubscribe: true));
+      expect(find.text('Errore'), findsOneWidget);
+
+      await tester.tap(find.text('Stato notifiche push'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Token APNs non disponibile'), findsOneWidget);
     });
   });
 }

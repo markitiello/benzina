@@ -6,18 +6,19 @@ import 'push_topics.dart';
 /// quello del carburante scelto in precedenza).
 ///
 /// Restituisce `false` se servono notifiche ma l'utente non le ha permesse.
+/// Gli errori (es. rete, token APNs mancante) vengono propagati.
 Future<bool> syncTrendTopics(PushGateway gateway, Set<String> desired) async {
   if (!gateway.isAvailable) return true;
   var allowed = true;
   if (desired.isNotEmpty) {
     allowed = await gateway.requestPermission();
   }
-  for (final topic in allTrendTopics) {
-    if (desired.contains(topic)) {
-      await gateway.subscribe(topic);
-    } else {
-      await gateway.unsubscribe(topic);
-    }
+  // Prima le iscrizioni: se una disiscrizione fallisce, quella che serve c'è.
+  for (final topic in desired) {
+    await gateway.subscribe(topic);
+  }
+  for (final topic in allTrendTopics.where((t) => !desired.contains(t))) {
+    await gateway.unsubscribe(topic);
   }
   return allowed;
 }
