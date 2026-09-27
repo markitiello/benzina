@@ -1,4 +1,4 @@
 # Chiave JSON del service account Google Play (Play Console → Configurazione →
 # Accesso API). Il file non va nel repository.
 json_key_file(ENV.fetch("PLAY_STORE_JSON_KEY", "fastlane/play-store-key.json"))
-package_name("it.benzina.benzina")
+package_name("it.markitiello.benzina")

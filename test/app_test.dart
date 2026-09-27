@@ -48,7 +48,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     PackageInfo.setMockInitialValues(
       appName: 'Benzina',
-      packageName: 'it.benzina.benzina',
+      packageName: 'it.markitiello.benzina',
       version: '1.0.0',
       buildNumber: '1',
       buildSignature: '',

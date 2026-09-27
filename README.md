@@ -94,7 +94,7 @@ L'app avvisa quando la **media nazionale** del carburante scelto inizia a **sali
 
 ### Attivarle
 
-1. **Progetto Firebase** ([console.firebase.google.com](https://console.firebase.google.com)): aggiungere un'app Android e una iOS con identificativo `it.benzina.benzina`.
+1. **Progetto Firebase** ([console.firebase.google.com](https://console.firebase.google.com)): aggiungere un'app Android e una iOS con identificativo `it.markitiello.benzina`.
 2. **iOS**: in Firebase → Impostazioni progetto → Cloud Messaging caricare la chiave APNs (.p8) creata nell'account Apple Developer. Le capacità "Push Notifications" e "Background Modes → Remote notifications" sono già nel progetto (`ios/Runner/Runner.entitlements`, `Info.plist`).
 3. **Avvio dell'app** con i dati del progetto Firebase (Impostazioni progetto → Le tue app):
 
@@ -122,7 +122,7 @@ Script in `scripts/`, configurazione di fastlane in `android/fastlane` e `ios/fa
 1. **Configurazione**: copiare `config/release.example.json` in `config/release.json` e compilarlo con l'indirizzo https del backend (`BENZINA_API_URL`) e i dati del progetto Firebase.
 2. **Android, firma**: `scripts/create_android_keystore.sh` crea `android/upload-keystore.jks` e `android/key.properties`. Conservare keystore e password in un posto sicuro: senza non si pubblicano aggiornamenti. Nella Play Console attivare "Play App Signing".
 3. **Android, Play Console**:
-   - creare l'app `it.benzina.benzina` e caricare a mano la prima versione;
+   - creare l'app `it.markitiello.benzina` e caricare a mano la prima versione;
    - per fastlane: Configurazione → Accesso API → service account con permesso di rilascio, salvare la chiave JSON in `android/fastlane/play-store-key.json`.
 4. **iOS**: su un Mac con Xcode:
    - impostare il team in Runner → Signing & Capabilities e creare l'app in App Store Connect;

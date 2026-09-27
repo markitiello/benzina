@@ -58,7 +58,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'it.benzina.benzina',
+                  userAgentPackageName: 'it.markitiello.benzina',
                   tileBuilder: isDark ? darkModeTileBuilder : null,
                 ),
                 CircleLayer(

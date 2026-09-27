@@ -1,4 +1,4 @@
-package it.benzina.benzina
+package it.markitiello.benzina
 
 import io.flutter.embedding.android.FlutterActivity
 

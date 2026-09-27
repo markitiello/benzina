@@ -44,7 +44,7 @@ class FirebaseConfig {
           appId: _iosAppId,
           messagingSenderId: _senderId,
           projectId: _projectId,
-          iosBundleId: 'it.benzina.benzina',
+          iosBundleId: 'it.markitiello.benzina',
         ),
       _ => null,
     };
