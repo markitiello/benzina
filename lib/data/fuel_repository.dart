@@ -43,4 +43,8 @@ abstract interface class FuelRepository {
 
   /// Valutazione Google del distributore, `null` se non abbinato.
   Future<GoogleRating?> googleRating(String stationId);
+
+  /// Tendenze della media nazionale degli ultimi [days] giorni, dalla più
+  /// recente (tutti i carburanti).
+  Future<List<TrendAlert>> trendAlerts({int days = 30});
 }

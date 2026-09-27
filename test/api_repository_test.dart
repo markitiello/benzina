@@ -346,6 +346,51 @@ void main() {
     expect(requests.single.headers.containsKey('X-Firebase-AppCheck'), isFalse);
   });
 
+  test('tendenze segnalate', () async {
+    handler = (_) => json({
+      'alerts': [
+        {
+          'fuel': 'gpl',
+          'mode': 'any',
+          'day': '2026-09-26',
+          'direction': 'up',
+          'days': 3,
+          'change': 0.012,
+          'price': 0.72,
+          'title': 'GPL in aumento',
+          'body': 'Media nazionale 0,720 €/l: +1,2% in 3 giorni.',
+          'topic': 'trend_gpl',
+          'sent_at': '2026-09-26T09:15:04+02:00',
+        },
+        {
+          'fuel': 'benzina',
+          'mode': 'self',
+          'day': '2026-09-20',
+          'direction': 'down',
+          'days': 3,
+          'change': -0.01,
+          'price': 1.8,
+          'title': 'Benzina self in calo',
+          'body': '...',
+          'topic': 'trend_benzina_self',
+          'sent_at': null,
+        },
+      ],
+    });
+
+    final alerts = await repository().trendAlerts(days: 30);
+
+    expect(requests.single.url.path, '/v1/trends/alerts');
+    expect(requests.single.url.queryParameters, {'days': '30'});
+    expect(alerts, hasLength(2));
+    final gpl = alerts.first.toNotification();
+    expect(gpl.id, 'trend-gpl-any-2026-09-26');
+    expect(gpl.kind, NotificationKind.trendUp);
+    expect(gpl.time, DateTime.utc(2026, 9, 26, 7, 15, 4).toLocal());
+    // Non ancora inviata: vale il giorno della tendenza.
+    expect(alerts.last.toNotification().time, DateTime(2026, 9, 20));
+  });
+
   test('errore di rete: ApiException con status 0', () async {
     final api = BenzinaApi(
       baseUrl: Uri.parse('https://api.test'),

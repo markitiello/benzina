@@ -6,6 +6,7 @@ import '../data/fuel_repository.dart';
 import '../data/location_service.dart';
 import '../data/mock_fuel_repository.dart';
 import '../data/models.dart';
+import '../push/push_topics.dart';
 
 // --- Servizi (sostituibili nei test con `overrides`) -----------------------
 
@@ -180,7 +181,7 @@ final googleRatingProvider = FutureProvider.family<GoogleRating?, String>(
 
 class FavoritesNotifier extends Notifier<Set<String>> {
   @override
-  Set<String> build() => const {'mock-1'};
+  Set<String> build() => const {};
 
   void toggle(String id) =>
       state = state.contains(id) ? ({...state}..remove(id)) : {...state, id};
@@ -198,46 +199,34 @@ final favoriteStationsProvider = FutureProvider<List<Station>>(
 
 // --- Notifiche ---------------------------------------------------------------
 
-// TODO: ricevere le notifiche push (Firebase Cloud Messaging) e salvarle.
+/// Tendenze della media nazionale per il carburante delle impostazioni
+/// (le stesse inviate come notifiche push), dal backend.
+final trendAlertsProvider = FutureProvider<List<TrendAlert>>((ref) async {
+  final s = ref.watch(settingsProvider);
+  final topic = trendTopic(s.fuel, s.effectiveMode);
+  final alerts = await ref.watch(fuelRepositoryProvider).trendAlerts();
+  return alerts.where((a) => a.topic == topic).toList();
+});
+
+/// Notifiche della schermata Notifiche: le tendenze del backend più le
+/// notifiche push ricevute mentre l'app è aperta.
+// TODO: salvare sul dispositivo quali notifiche sono state lette.
 class NotificationsNotifier extends Notifier<List<AppNotification>> {
   @override
   List<AppNotification> build() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return [
-      AppNotification(
-        id: 'n1',
-        kind: NotificationKind.priceBelowThreshold,
-        title: 'Prezzo sotto la tua soglia',
-        body: 'Q8 Easy · Via Pacini: benzina self a 1,739 €/l (soglia 1,750).',
-        time: today.add(const Duration(hours: 8, minutes: 5)),
-        stationId: 'mock-0',
-      ),
-      AppNotification(
-        id: 'n2',
-        kind: NotificationKind.favoriteDrop,
-        title: 'Un preferito ha abbassato il prezzo',
-        body: 'Eni · Viale Argonne: benzina self −0,020 €/l rispetto a ieri.',
-        time: today.add(const Duration(hours: 8, minutes: 1)),
-        stationId: 'mock-1',
-      ),
-      AppNotification(
-        id: 'n3',
-        kind: NotificationKind.weeklySummary,
-        title: 'Riepilogo settimanale',
-        body: 'Media nazionale benzina 1,819 €/l, −0,6% sulla settimana.',
-        time: today.subtract(const Duration(days: 2, hours: -9)),
-        read: true,
-      ),
-      AppNotification(
-        id: 'n4',
-        kind: NotificationKind.appUpdate,
-        title: 'Aggiornamento disponibile',
-        body: 'È disponibile una nuova versione dell\'app. Scopri le novità.',
-        time: today.subtract(const Duration(days: 3, hours: -10)),
-        read: true,
-      ),
-    ];
+    ref.listen(trendAlertsProvider, (_, next) {
+      final alerts = next.value;
+      if (alerts != null) _merge(alerts.map((a) => a.toNotification()));
+    });
+    return const [];
+  }
+
+  /// Aggiunge le notifiche nuove e ordina dalla più recente.
+  void _merge(Iterable<AppNotification> incoming) {
+    final known = {for (final n in state) n.id};
+    final added = incoming.where((n) => !known.contains(n.id)).toList();
+    if (added.isEmpty) return;
+    state = [...state, ...added]..sort((a, b) => b.time.compareTo(a.time));
   }
 
   /// Aggiunge in cima una notifica ricevuta (es. push). Ignora i doppioni.

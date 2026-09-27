@@ -89,7 +89,8 @@ flutter run --dart-define-from-file config/dev.json
 L'app avvisa quando la **media nazionale** del carburante scelto inizia a **salire o scendere**: 3 giorni di fila, almeno lo 0,5%. Le tendenze le rileva il backend dopo l'import giornaliero e le invia con **Firebase Cloud Messaging**, che raggiunge sia Android sia iOS.
 
 - L'app si iscrive al *topic* del carburante scelto (es. `trend_benzina_self`, vedi `lib/push/push_topics.dart`) e cambia iscrizione quando cambia carburante. Si disattiva da **Impostazioni → Prezzi in salita o in discesa**.
-- Le notifiche arrivate finiscono nella schermata **Notifiche**; toccandole si apre **Andamento**.
+- La schermata **Notifiche** mostra le tendenze del carburante scelto degli ultimi 30 giorni, lette dal backend (`/v1/trends/alerts`), più le notifiche push arrivate con l'app aperta. Se la stessa tendenza arriva in tutti e due i modi, compare una volta sola. Toccandole si apre **Andamento**.
+- Per ora le notifiche lette non vengono salvate: dopo un riavvio tornano "non lette".
 - Senza Firebase configurato l'app funziona lo stesso, senza notifiche push.
 
 ### Attivarle

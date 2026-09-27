@@ -306,6 +306,35 @@ class MockFuelRepository implements FuelRepository {
       }),
     );
   }
+
+  @override
+  Future<List<TrendAlert>> trendAlerts({int days = 30}) async {
+    await Future<void>.delayed(latency);
+    final now = _clock();
+    final today = DateTime(now.year, now.month, now.day);
+    TrendAlert alert(FuelType fuel, int daysAgo, {required bool rising}) {
+      final day = today.subtract(Duration(days: daysAgo));
+      final label = fuel == FuelType.diesel ? 'Diesel' : 'Benzina';
+      return TrendAlert(
+        fuel: fuel,
+        mode: 'self',
+        day: day,
+        rising: rising,
+        title: '$label self ${rising ? 'in aumento' : 'in calo'}',
+        body:
+            'Media nazionale ${rising ? 'in aumento' : 'in calo'} da 3 '
+            'giorni (dati di prova).',
+        topic: 'trend_${fuel.name}_self',
+        sentAt: day.add(const Duration(hours: 9, minutes: 15)),
+      );
+    }
+
+    return [
+      alert(FuelType.benzina, 0, rising: false),
+      alert(FuelType.diesel, 2, rising: true),
+      alert(FuelType.benzina, 12, rising: true),
+    ].where((a) => today.difference(a.day).inDays < days).toList();
+  }
 }
 
 class _Template {

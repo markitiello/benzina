@@ -132,6 +132,49 @@ class GoogleRating {
   final String attribution;
 }
 
+/// Tendenza della media nazionale rilevata dal backend: la stessa inviata
+/// come notifica push al topic [topic].
+class TrendAlert {
+  const TrendAlert({
+    required this.fuel,
+    required this.mode,
+    required this.day,
+    required this.rising,
+    required this.title,
+    required this.body,
+    required this.topic,
+    this.sentAt,
+  });
+
+  final FuelType fuel;
+
+  /// `self`, `servito` o `any` (GPL e metano), come nel backend.
+  final String mode;
+  final DateTime day;
+  final bool rising;
+  final String title;
+  final String body;
+  final String topic;
+
+  /// Quando è partita la notifica push; `null` se non ancora inviata.
+  final DateTime? sentAt;
+
+  /// Stesso id della notifica push corrispondente (vedi PushMessage), così
+  /// la stessa tendenza non compare due volte.
+  String get notificationId =>
+      'trend-${fuel.name}-$mode-${day.year}-${_two(day.month)}-${_two(day.day)}';
+
+  static String _two(int n) => n.toString().padLeft(2, '0');
+
+  AppNotification toNotification() => AppNotification(
+    id: notificationId,
+    kind: rising ? NotificationKind.trendUp : NotificationKind.trendDown,
+    title: title,
+    body: body,
+    time: sentAt ?? day,
+  );
+}
+
 enum NotificationKind {
   priceBelowThreshold,
   favoriteDrop,

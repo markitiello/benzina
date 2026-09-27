@@ -147,6 +147,28 @@ class ApiFuelRepository implements FuelRepository {
     );
   }
 
+  @override
+  Future<List<TrendAlert>> trendAlerts({int days = 30}) async {
+    final json = await _api.get(
+      '/v1/trends/alerts',
+      query: {'days': '${days.clamp(1, 366)}'},
+    );
+    return [
+      for (final a in _list(json!['alerts']))
+        if (FuelType.values.asNameMap()[a['fuel']] case final fuel?)
+          TrendAlert(
+            fuel: fuel,
+            mode: a['mode'] as String,
+            day: DateTime.parse(a['day'] as String),
+            rising: a['direction'] == 'up',
+            title: a['title'] as String,
+            body: a['body'] as String,
+            topic: a['topic'] as String,
+            sentAt: a['sent_at'] == null ? null : _dateTime(a['sent_at']),
+          ),
+    ];
+  }
+
   // --- Parametri -------------------------------------------------------------
 
   static Map<String, String> _area(LatLng center, double radiusKm) => {

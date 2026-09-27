@@ -176,7 +176,10 @@ void main() {
 
       await tester.tap(find.byTooltip('Notifiche, 3 non lette'));
       await tester.pumpAndSettle();
-      expect(find.text('Benzina self in calo'), findsOneWidget);
+      expect(
+        find.text('Media nazionale 1,819 €/l: −1,2% in 3 giorni.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('toccare la notifica apre Andamento', (tester) async {
