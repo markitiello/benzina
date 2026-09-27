@@ -68,6 +68,12 @@ Il codice è in `lib/firebase/firebase_setup.dart`, `lib/data/api/benzina_api.da
    - `BENZINA_APPCHECK_PROJECT_NUMBER` = numero del progetto Firebase;
    - `BENZINA_APPCHECK_APP_IDS` = gli ID delle app Android e iOS (`1:…:android:…`, `1:…:ios:…`).
 
+**Sviluppo con il backend vero:** copiare `config/dev.example.json` in `config/dev.json`, escluso da git, e inserire la chiave (`BENZINA_API_KEYS` del backend). Poi:
+
+```sh
+flutter run --dart-define-from-file config/dev.json
+```
+
 **Sviluppo:**
 - **Debug provider.** Nelle build di debug l'app usa il provider di debug di App Check. Al primo avvio il token di debug compare nel log: Logcat, oppure la console di Xcode. Va aggiunto in Firebase → App Check → Gestisci token di debug.
 - **Chiave statica.** In alternativa si usa una chiave statica del backend (`BENZINA_API_KEYS`), anche senza Firebase:

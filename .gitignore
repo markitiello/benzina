@@ -52,6 +52,7 @@ app.*.map.json
 /android/*.jks
 /android/*.keystore
 /config/release.json
+/config/dev.json
 /android/fastlane/play-store-key.json
 /ios/fastlane/AuthKey_*.p8
 /build/symbols/
