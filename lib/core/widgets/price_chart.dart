@@ -34,6 +34,12 @@ class PriceChart extends StatelessWidget {
   final double height;
   final bool showAxes;
 
+  /// Oltre questo intervallo senza dati la linea si interrompe (es. storico
+  /// MIMIT non ancora pubblicato).
+  static const maxGapDays = 2;
+
+  static DateTime _date(DateTime d) => DateTime.utc(d.year, d.month, d.day);
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
@@ -45,8 +51,16 @@ class PriceChart extends StatelessWidget {
     final pad = math.max((maxY - minY) * 0.15, 0.005);
     minY -= pad;
     maxY += pad;
-    final first = series.first.points;
-    final lastX = (first.length - 1).toDouble();
+    // Asse x in giorni dal primo punto: i giorni senza dati restano vuoti e
+    // le serie (nazionale, zona) si allineano per data, non per posizione.
+    final origin = all
+        .map((p) => _date(p.day))
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    double xOf(DateTime day) => _date(day).difference(origin).inDays.toDouble();
+    DateTime dayAt(double x) => origin.add(Duration(days: x.round()));
+    final lastX = all.map((p) => xOf(p.day)).reduce(math.max);
+    final now = DateTime.now();
+    final today = DateTime.utc(now.year, now.month, now.day);
 
     return SizedBox(
       height: height,
@@ -63,8 +77,8 @@ class PriceChart extends StatelessWidget {
               getTooltipItems: (spots) => [
                 for (final s in spots)
                   LineTooltipItem(
-                    s.spotIndex < first.length && s.barIndex == 0
-                        ? '${formatShortDate(first[s.spotIndex].day)}\n${formatPrice(s.y)}'
+                    s.barIndex == 0
+                        ? '${formatShortDate(dayAt(s.x))}\n${formatPrice(s.y)}'
                         : formatPrice(s.y),
                     TextStyle(
                       color: c.ground,
@@ -104,13 +118,9 @@ class PriceChart extends StatelessWidget {
                 reservedSize: 22,
                 interval: math.max(1, lastX / 2),
                 getTitlesWidget: (v, meta) {
-                  final i = v.round();
-                  if (i < 0 || i >= first.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final label = i == first.length - 1
-                      ? 'oggi'
-                      : formatShortDate(first[i].day);
+                  if (v < 0 || v > lastX) return const SizedBox.shrink();
+                  final day = dayAt(v);
+                  final label = day == today ? 'oggi' : formatShortDate(day);
                   return Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
@@ -126,8 +136,14 @@ class PriceChart extends StatelessWidget {
             for (final s in series)
               LineChartBarData(
                 spots: [
-                  for (var i = 0; i < s.points.length; i++)
-                    FlSpot(i.toDouble(), s.points[i].price),
+                  for (var i = 0; i < s.points.length; i++) ...[
+                    // Più di [maxGapDays] giorni senza dati: linea interrotta.
+                    if (i > 0 &&
+                        xOf(s.points[i].day) - xOf(s.points[i - 1].day) >
+                            maxGapDays)
+                      FlSpot.nullSpot,
+                    FlSpot(xOf(s.points[i].day), s.points[i].price),
+                  ],
                 ],
                 color: s.color,
                 barWidth: s.dashed ? 1.5 : 2.5,
