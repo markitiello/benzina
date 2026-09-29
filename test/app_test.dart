@@ -16,6 +16,7 @@ Widget buildApp({
   PushGateway push = const DisabledPushGateway(),
 }) {
   return ProviderScope(
+    retry: noRetry,
     overrides: [
       pushGatewayProvider.overrideWithValue(push),
       fuelRepositoryProvider.overrideWithValue(

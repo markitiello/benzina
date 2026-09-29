@@ -16,8 +16,9 @@ abstract final class StoreKeys {
   static const settings = 'settings';
   static const favorites = 'favorites';
   static const readNotifications = 'read_notifications';
+  static const apiCache = 'api_cache';
 
-  static const all = {settings, favorites, readNotifications};
+  static const all = {settings, favorites, readNotifications, apiCache};
 }
 
 /// In memoria: per i test e se il salvataggio sul dispositivo non è

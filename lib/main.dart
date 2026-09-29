@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/app.dart';
 import 'data/api/api_config.dart';
 import 'data/api/benzina_api.dart';
+import 'data/api/response_cache.dart';
 import 'data/api_fuel_repository.dart';
 import 'firebase/firebase_setup.dart';
 import 'push/firebase_push_gateway.dart';
@@ -19,22 +20,25 @@ Future<void> main() async {
   final push = firebase
       ? await FirebasePushGateway.create()
       : const DisabledPushGateway();
+  // Senza BENZINA_API_URL restano i dati di prova.
+  final api = ApiConfig.isConfigured
+      ? BenzinaApi(
+          baseUrl: Uri.parse(ApiConfig.baseUrl),
+          appCheckToken: firebase ? appCheckToken : null,
+          apiKey: ApiConfig.apiKey,
+          cache: ResponseCache(store),
+        )
+      : null;
   runApp(
     ProviderScope(
+      retry: noRetry,
       overrides: [
         localStoreProvider.overrideWithValue(store),
         pushGatewayProvider.overrideWithValue(push),
-        // Senza BENZINA_API_URL restano i dati di prova.
-        if (ApiConfig.isConfigured)
-          fuelRepositoryProvider.overrideWithValue(
-            ApiFuelRepository(
-              BenzinaApi(
-                baseUrl: Uri.parse(ApiConfig.baseUrl),
-                appCheckToken: firebase ? appCheckToken : null,
-                apiKey: ApiConfig.apiKey,
-              ),
-            ),
-          ),
+        if (api != null) ...[
+          apiClientProvider.overrideWithValue(api),
+          fuelRepositoryProvider.overrideWithValue(ApiFuelRepository(api)),
+        ],
       ],
       child: const BenzinaApp(),
     ),

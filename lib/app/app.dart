@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_theme.dart';
+import '../core/widgets/stale_banner.dart';
 import '../push/push_message.dart';
 import '../push/push_providers.dart';
 import '../push/push_status.dart';
@@ -31,6 +32,11 @@ class _BenzinaAppState extends ConsumerState<BenzinaApp> {
   @override
   void initState() {
     super.initState();
+    // Server irraggiungibile e dati salvati in uso: banner in alto.
+    ref.read(apiClientProvider)?.onFreshness = (since) {
+      if (mounted) ref.read(staleDataProvider.notifier).set(since);
+    };
+
     final push = ref.read(pushGatewayProvider);
     final notifications = ref.read(notificationsProvider.notifier);
 
@@ -96,6 +102,7 @@ class _BenzinaAppState extends ConsumerState<BenzinaApp> {
       supportedLocales: const [Locale('it', 'IT')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: _router,
+      builder: (context, child) => StaleDataFrame(child: child!),
     );
   }
 }

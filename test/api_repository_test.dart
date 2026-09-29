@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:benzina/data/api/benzina_api.dart';
+import 'package:benzina/data/api/response_cache.dart';
 import 'package:benzina/data/api_fuel_repository.dart';
 import 'package:benzina/data/models.dart';
+import 'package:benzina/state/local_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -422,6 +424,100 @@ void main() {
     expect(gpl.time, DateTime.utc(2026, 9, 26, 7, 15, 4).toLocal());
     // Non ancora inviata: vale il giorno della tendenza.
     expect(alerts.last.toNotification().time, DateTime(2026, 9, 20));
+  });
+
+  group('server irraggiungibile', () {
+    late MemoryStore store;
+    late List<DateTime?> freshness;
+    late int now;
+
+    BenzinaApi cachedApi() {
+      final api = BenzinaApi(
+        baseUrl: Uri.parse('https://api.test'),
+        client: MockClient((request) async {
+          requests.add(request);
+          return handler(request);
+        }),
+        cache: ResponseCache(store),
+        clock: () => DateTime(2026, 9, 29, 10, now),
+      );
+      api.onFreshness = freshness.add;
+      return api;
+    }
+
+    setUp(() {
+      store = MemoryStore();
+      freshness = [];
+      now = 0;
+    });
+
+    test('usa l\'ultima risposta salvata e lo segnala', () async {
+      handler = (_) => json(stationDetail(1));
+      final repo = ApiFuelRepository(cachedApi());
+      await repo.station('1');
+      expect(freshness, [null]);
+
+      now = 30;
+      handler = (_) => throw http.ClientException('offline');
+      final station = await repo.station('1');
+      expect(station!.id, '1');
+      expect(freshness.last, DateTime(2026, 9, 29, 10, 0));
+
+      // Anche con un errore del server (5xx).
+      handler = (_) => problem(503, 'Servizio non disponibile');
+      expect(await repo.station('1'), isNotNull);
+
+      // Tornato raggiungibile: dati aggiornati, niente più avviso.
+      handler = (_) => json(stationDetail(1));
+      await repo.station('1');
+      expect(freshness.last, isNull);
+    });
+
+    test('la posizione non conta: si mostra l\'ultima lista', () async {
+      final nearby = {
+        'fuel': 'benzina',
+        'mode': 'self',
+        'data_date': '2026-09-29',
+        'national_average': 1.8,
+        'offers': <Object>[],
+      };
+      handler = (_) => json(nearby);
+      final repo = ApiFuelRepository(cachedApi());
+      Future<void> search(double lat) => repo.offersNear(
+        center: LatLng(lat, 9),
+        radiusKm: 5,
+        fuel: FuelType.benzina,
+        mode: ServiceMode.self,
+      );
+      await search(45.0);
+
+      handler = (_) => throw http.ClientException('offline');
+      await search(45.01);
+      expect(freshness.last, isNotNull);
+      // Carburante diverso: niente dati salvati, errore.
+      await expectLater(
+        repo.offersNear(
+          center: const LatLng(45, 9),
+          radiusKm: 5,
+          fuel: FuelType.diesel,
+          mode: ServiceMode.self,
+        ),
+        throwsA(
+          isA<ApiException>().having((e) => e.isUnavailable, 'offline', isTrue),
+        ),
+      );
+    });
+
+    test('gli errori veri non usano i dati salvati', () async {
+      handler = (_) => json(stationDetail(1));
+      final api = cachedApi();
+      await ApiFuelRepository(api).station('1');
+      handler = (_) => problem(401, 'Non autorizzato');
+      await expectLater(
+        ApiFuelRepository(api).station('1'),
+        throwsA(isA<ApiException>().having((e) => e.status, 'status', 401)),
+      );
+    });
   });
 
   test('errore di rete: ApiException con status 0', () async {

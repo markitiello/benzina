@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../data/api/benzina_api.dart';
 import '../data/fuel_repository.dart';
 import '../data/location_service.dart';
 import '../data/mock_fuel_repository.dart';
@@ -23,6 +24,42 @@ final locationServiceProvider = Provider<LocationService>(
 
 /// Sostituito in main.dart con DeviceStore (dati salvati sul telefono).
 final localStoreProvider = Provider<LocalStore>((ref) => MemoryStore());
+
+/// Client del backend, se configurato (in main.dart); `null` con i dati di prova.
+final apiClientProvider = Provider<BenzinaApi?>((ref) => null);
+
+/// Data dei dati mostrati quando il server non è raggiungibile e si usano
+/// quelli salvati; `null` se i dati sono aggiornati.
+class StaleDataNotifier extends Notifier<DateTime?> {
+  @override
+  DateTime? build() => null;
+
+  void set(DateTime? since) {
+    if (state != since) state = since;
+  }
+}
+
+final staleDataProvider = NotifierProvider<StaleDataNotifier, DateTime?>(
+  StaleDataNotifier.new,
+);
+
+/// Nessun nuovo tentativo automatico quando un provider fallisce (Riverpod
+/// ripete con attese crescenti: senza rete la splash resterebbe ferma per
+/// secondi). Si riprova con il pulsante "Riprova".
+Duration? noRetry(int retryCount, Object error) => null;
+
+/// Richiede di nuovo al server tutti i dati mostrati (pulsante "Riprova").
+void refreshAllData(WidgetRef ref) {
+  ref
+    ..invalidate(nearbyOffersProvider)
+    ..invalidate(nationalTrendProvider)
+    ..invalidate(areaTrendProvider)
+    ..invalidate(stationProvider)
+    ..invalidate(stationTrendProvider)
+    ..invalidate(favoriteStationsProvider)
+    ..invalidate(googleRatingProvider)
+    ..invalidate(trendAlertsProvider);
+}
 
 // --- Impostazioni -----------------------------------------------------------
 

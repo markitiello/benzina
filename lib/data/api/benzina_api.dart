@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'response_cache.dart';
+
 /// Token Firebase App Check; `forceRefresh` ne chiede uno nuovo.
 typedef AppCheckTokenSource = Future<String?> Function({bool forceRefresh});
 
@@ -14,6 +16,9 @@ class ApiException implements Exception {
   final int status;
   final String title;
   final String? detail;
+
+  /// Server irraggiungibile o in errore (non una richiesta sbagliata).
+  bool get isUnavailable => status == 0 || status >= 500;
 
   @override
   String toString() =>
@@ -34,14 +39,25 @@ class BenzinaApi {
     this.appCheckToken,
     this.apiKey,
     this.timeout = const Duration(seconds: 15),
+    this.cache,
+    DateTime Function()? clock,
   }) : _base = baseUrl,
-       _client = client ?? http.Client();
+       _client = client ?? http.Client(),
+       _clock = clock ?? DateTime.now;
 
   final Uri _base;
   final http.Client _client;
   final AppCheckTokenSource? appCheckToken;
   final String? apiKey;
   final Duration timeout;
+  final DateTime Function() _clock;
+
+  /// Ultime risposte salvate: se il server non risponde si usano quelle.
+  final ResponseCache? cache;
+
+  /// Chiamata con `null` quando i dati arrivano dal server, con la data dei
+  /// dati quando si usano quelli salvati (server irraggiungibile).
+  void Function(DateTime? staleSince)? onFreshness;
 
   /// GET di [path] (es. `/v1/stations/nearby`). Con [nullOn404] una risposta
   /// 404 restituisce `null` invece di un errore.
@@ -57,7 +73,24 @@ class BenzinaApi {
       path: '$basePath$path',
       queryParameters: query.isEmpty ? null : query,
     );
+    final key = ResponseCache.keyFor(path, query);
+    try {
+      final json = await _fetch(url, nullOn404: nullOn404);
+      if (json != null) cache?.put(key, json, _clock());
+      onFreshness?.call(null);
+      return json;
+    } on ApiException catch (e) {
+      final saved = e.isUnavailable ? cache?.get(key) : null;
+      if (saved == null) rethrow;
+      onFreshness?.call(saved.savedAt);
+      return saved.json;
+    }
+  }
 
+  Future<Map<String, dynamic>?> _fetch(
+    Uri url, {
+    required bool nullOn404,
+  }) async {
     var response = await _send(url, forceRefresh: false);
     // Token scaduto o revocato: un solo nuovo tentativo con un token nuovo.
     if (response.statusCode == 401 && appCheckToken != null) {

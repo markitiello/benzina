@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/api/benzina_api.dart';
 import '../theme/app_colors.dart';
 
 /// Scheda bianca (o grigio scuro) con bordo sottile.
@@ -213,15 +214,61 @@ class AsyncBody<T> extends StatelessWidget {
         height: loadingHeight,
         child: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          children: [
-            const Text('Impossibile caricare i dati.'),
-            if (onRetry != null)
-              TextButton(onPressed: onRetry, child: const Text('Riprova')),
+      error: (error, _) => error is ApiException && error.isUnavailable
+          ? OfflineView(onRetry: onRetry)
+          : Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  const Text('Impossibile caricare i dati.'),
+                  if (onRetry != null)
+                    TextButton(
+                      onPressed: onRetry,
+                      child: const Text('Riprova'),
+                    ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+/// Server irraggiungibile e nessun dato salvato da mostrare.
+class OfflineView extends StatelessWidget {
+  const OfflineView({super.key, this.onRetry});
+
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      child: Column(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 64, color: c.muted),
+          const SizedBox(height: 16),
+          const Text(
+            'Impossibile raggiungere il server',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Controlla la connessione a internet. Se il problema continua, '
+            'il servizio potrebbe essere temporaneamente non disponibile.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: c.muted),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Riprova'),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
