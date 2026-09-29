@@ -220,13 +220,39 @@ class ApiFuelRepository implements FuelRepository {
         prices[i] = FuelPrice(fuel, ServiceMode.self, price);
       }
     }
-    return _station(json, prices: prices, updatedAt: updatedAt);
+    final details = _details(json['details']);
+    return _station(
+      json,
+      prices: prices,
+      updatedAt: updatedAt,
+      details: details,
+    );
+  }
+
+  static StationDetails? _details(Object? value) {
+    if (value is! Map<String, dynamic>) return null;
+    String? text(Object? v) => v is String && v.trim().isNotEmpty ? v : null;
+    return StationDetails(
+      phone: text(value['phone']),
+      email: text(value['email']),
+      website: text(value['website']),
+      services: [
+        for (final s in (value['services'] as List? ?? const []))
+          if (s is String) s,
+      ],
+      openingHours: [
+        for (final h in (value['opening_hours'] as List? ?? const []))
+          if (h is Map && h['day'] is int && h['hours'] is String)
+            OpeningHours(h['day'] as int, h['hours'] as String),
+      ],
+    );
   }
 
   static Station _station(
     Map<String, dynamic> json, {
     required List<FuelPrice> prices,
     DateTime? updatedAt,
+    StationDetails? details,
   }) {
     final brand = (json['brand'] as String).trim();
     return Station(
@@ -237,6 +263,8 @@ class ApiFuelRepository implements FuelRepository {
       position: LatLng(_num(json['lat']), _num(json['lng'])),
       prices: prices,
       updatedAt: updatedAt ?? DateTime.now(),
+      openingHours: details?.hoursOn(DateTime.now()),
+      details: details,
     );
   }
 

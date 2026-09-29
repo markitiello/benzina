@@ -31,6 +31,59 @@ class FuelPrice {
   final double price;
 }
 
+/// Orario di un giorno: [day] da 1 (lunedì) a 7 (domenica), 8 i festivi.
+class OpeningHours {
+  const OpeningHours(this.day, this.hours);
+
+  final int day;
+
+  /// "07:00–18:30", "08:00–12:30, 15:00–19:00", "24 ore" o "Chiuso".
+  final String hours;
+
+  static const dayNames = [
+    'Lunedì',
+    'Martedì',
+    'Mercoledì',
+    'Giovedì',
+    'Venerdì',
+    'Sabato',
+    'Domenica',
+    'Festivi',
+  ];
+
+  String get dayName => day >= 1 && day <= 8 ? dayNames[day - 1] : '';
+}
+
+/// Orari, servizi e contatti comunicati dal gestore (da Osservaprezzi).
+class StationDetails {
+  const StationDetails({
+    this.phone,
+    this.email,
+    this.website,
+    this.services = const [],
+    this.openingHours = const [],
+  });
+
+  final String? phone;
+  final String? email;
+  final String? website;
+
+  /// Come li indica il gestore, es. "Bancomat", "Food&Beverage", "Wi-Fi".
+  final List<String> services;
+  final List<OpeningHours> openingHours;
+
+  bool get hasContacts => phone != null || email != null || website != null;
+
+  /// Orario del giorno [date] (i festivi non si riconoscono: vale il giorno
+  /// della settimana).
+  String? hoursOn(DateTime date) {
+    for (final h in openingHours) {
+      if (h.day == date.weekday) return h.hours;
+    }
+    return null;
+  }
+}
+
 /// Un distributore dell'anagrafica MIMIT.
 class Station {
   const Station({
@@ -42,6 +95,7 @@ class Station {
     required this.prices,
     required this.updatedAt,
     this.openingHours,
+    this.details,
   });
 
   final String id;
@@ -51,7 +105,10 @@ class Station {
   final LatLng position;
   final List<FuelPrice> prices;
   final DateTime updatedAt;
+
+  /// Orario di oggi, es. "07:00–18:30" o "Chiuso".
   final String? openingHours;
+  final StationDetails? details;
 
   String get name => '$brand · $address';
 

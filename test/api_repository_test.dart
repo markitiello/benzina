@@ -186,6 +186,39 @@ void main() {
     },
   );
 
+  test('dettaglio: orari, servizi e contatti', () async {
+    handler = (_) => json({
+      ...stationDetail(3464),
+      'details': {
+        'phone': '366 6286969',
+        'email': null,
+        'website': null,
+        'services': ['Bancomat', 'Food&Beverage'],
+        'opening_hours': [
+          {'day': 1, 'hours': '07:00–18:30'},
+          {'day': 7, 'hours': 'Chiuso'},
+        ],
+      },
+    });
+
+    final station = (await repository().station('3464'))!;
+
+    final d = station.details!;
+    expect(d.phone, '366 6286969');
+    expect(d.email, isNull);
+    expect(d.hasContacts, isTrue);
+    expect(d.services, ['Bancomat', 'Food&Beverage']);
+    expect(d.hoursOn(DateTime(2026, 9, 28)), '07:00–18:30'); // lunedì
+    expect(d.hoursOn(DateTime(2026, 9, 27)), 'Chiuso'); // domenica
+    expect(d.hoursOn(DateTime(2026, 9, 29)), isNull);
+    expect(d.openingHours.last.dayName, 'Domenica');
+  });
+
+  test('senza dettagli (Osservaprezzi non attivo): null', () async {
+    handler = (_) => json({...stationDetail(3464), 'details': null});
+    expect((await repository().station('3464'))!.details, isNull);
+  });
+
   test('distributore inesistente o id non valido: null', () async {
     handler = (_) => problem(404, 'Non trovato');
     final repo = repository();

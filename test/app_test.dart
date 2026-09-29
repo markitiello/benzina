@@ -85,6 +85,19 @@ void main() {
     );
   });
 
+  testWidgets('dettaglio: servizi, orari e contatti', (tester) async {
+    await tester.pumpWidget(buildApp());
+    await passSplash(tester);
+
+    await tester.tap(find.text('Q8 Easy'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bancomat'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Orari'), 300);
+    expect(find.text('Lunedì'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Contatti'), 300);
+    expect(find.byIcon(Icons.phone_rounded), findsOneWidget);
+  });
+
   testWidgets('preferiti: il prezzo dice a quale carburante si riferisce', (
     tester,
   ) async {

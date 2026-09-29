@@ -170,6 +170,19 @@ class MockFuelRepository implements FuelRepository {
       prices: prices,
       updatedAt: _today.add(const Duration(hours: 8)),
       openingHours: t.openingHours,
+      details: StationDetails(
+        phone: '02 1234 56${index.toString().padLeft(2, '0')}',
+        services: [
+          if (index.isEven) 'Food&Beverage',
+          'Bancomat',
+          if (index % 3 == 0) 'Wi-Fi',
+          if (index % 4 == 0) 'Servizi per disabili',
+        ],
+        openingHours: [
+          for (var day = 1; day <= 6; day++) OpeningHours(day, t.openingHours),
+          OpeningHours(7, index.isEven ? 'Chiuso' : '08:00–12:30'),
+        ],
+      ),
     );
   }
 

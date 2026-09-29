@@ -68,15 +68,20 @@ class _Body extends ConsumerWidget {
           '${station.address}, ${station.city}',
           style: TextStyle(fontSize: 15, color: c.muted),
         ),
-        if (station.openingHours != null)
+        if (station.openingHours case final hours?)
           Text(
-            'Aperto ${station.openingHours}',
+            hours == 'Chiuso' ? 'Oggi chiuso' : 'Oggi $hours',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: c.cheap,
+              color: hours == 'Chiuso' ? c.muted : c.cheap,
             ),
           ),
+        if (station.details?.services case final services?
+            when services.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _Services(services: services),
+        ],
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: () => openDirections(context, station.position),
@@ -87,6 +92,15 @@ class _Body extends ConsumerWidget {
         _PriceTable(station: station),
         const SizedBox(height: 16),
         _StationTrend(station: station),
+        if (station.details?.openingHours case final hours?
+            when hours.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _Hours(hours: hours),
+        ],
+        if (station.details case final d? when d.hasContacts) ...[
+          const SizedBox(height: 16),
+          _Contacts(details: d),
+        ],
         const SizedBox(height: 16),
         _Reviews(stationId: station.id),
       ],
@@ -413,6 +427,183 @@ class _ReviewTile extends StatelessWidget {
           style: const TextStyle(fontSize: 14, height: 1.45),
         ),
       ],
+    );
+  }
+}
+
+/// Servizi del distributore: prima i più utili a chi fa il pieno.
+class _Services extends StatelessWidget {
+  const _Services({required this.services});
+
+  final List<String> services;
+
+  /// Nome come lo comunica il gestore → etichetta e icona.
+  static const _known = <String, (String, IconData)>{
+    'Food&Beverage': ('Bar e ristoro', Icons.local_cafe_rounded),
+    'Bancomat': ('Bancomat', Icons.atm_rounded),
+    'Shop': ('Negozio', Icons.storefront_rounded),
+    'Autolavaggio': ('Autolavaggio', Icons.local_car_wash_rounded),
+    'Officina': ('Officina', Icons.build_rounded),
+    'Ricarica elettrica': ('Ricarica elettrica', Icons.ev_station_rounded),
+    'Servizi per disabili': ('Accessibile', Icons.accessible_rounded),
+    'Wi-Fi': ('Wi-Fi', Icons.wifi_rounded),
+    'Sosta Camper/Tir': ('Sosta camper e TIR', Icons.rv_hookup_rounded),
+    'Area bambini': ('Area bambini', Icons.child_friendly_rounded),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final order = _known.keys.toList();
+    final sorted = [...services]
+      ..sort((a, b) {
+        int rank(String s) {
+          final i = order.indexOf(s);
+          return i < 0 ? order.length : i;
+        }
+
+        return rank(a).compareTo(rank(b));
+      });
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final service in sorted)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: c.cheapChipBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _known[service]?.$2 ?? Icons.check_circle_outline_rounded,
+                  size: 16,
+                  color: c.cheapChipFg,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _known[service]?.$1 ?? service,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: c.cheapChipFg,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Hours extends StatelessWidget {
+  const _Hours({required this.hours});
+
+  final List<OpeningHours> hours;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final today = DateTime.now().weekday;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Orari',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          for (final h in hours)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      h.dayName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: h.day == today
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    h.hours,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: h.day == today
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                      color: h.hours == 'Chiuso' ? c.muted : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 6),
+          Text(
+            'Comunicati dal gestore al MIMIT',
+            style: TextStyle(fontSize: 11, color: c.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Contacts extends StatelessWidget {
+  const _Contacts({required this.details});
+
+  final StationDetails details;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text, Uri url) => ListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      leading: Icon(icon),
+      title: Text(text, style: const TextStyle(fontSize: 15)),
+      onTap: () => openExternal(context, url),
+    );
+
+    final website = details.website;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Contatti',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          ),
+          if (details.phone case final phone?)
+            row(
+              Icons.phone_rounded,
+              phone,
+              Uri(scheme: 'tel', path: phone.replaceAll(' ', '')),
+            ),
+          if (details.email case final email?)
+            row(
+              Icons.mail_outline_rounded,
+              email,
+              Uri(scheme: 'mailto', path: email),
+            ),
+          if (website != null)
+            row(
+              Icons.language_rounded,
+              website,
+              Uri.parse(
+                website.startsWith('http') ? website : 'https://$website',
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
