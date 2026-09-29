@@ -290,7 +290,7 @@ class _Reviews extends ConsumerWidget {
         builder: (r) {
           if (r == null) {
             return const Text(
-              'Nessuna recensione disponibile per questo distributore.',
+              'Valutazione Google non disponibile per questo distributore.',
             );
           }
           return Column(
@@ -300,7 +300,7 @@ class _Reviews extends ConsumerWidget {
                 children: [
                   const Expanded(
                     child: Text(
-                      'Recensioni',
+                      'Valutazione Google',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
@@ -328,7 +328,7 @@ class _Reviews extends ConsumerWidget {
                         StarRow(rating: r.rating),
                         const SizedBox(height: 4),
                         Text(
-                          '${r.count} recensioni',
+                          '${r.count} valutazioni',
                           style: TextStyle(fontSize: 12, color: c.muted),
                         ),
                       ],
@@ -346,7 +346,7 @@ class _Reviews extends ConsumerWidget {
                 const SizedBox(height: 14),
                 OutlinedButton(
                   onPressed: () => openExternal(context, url),
-                  child: const Text('Leggi tutte su Google Maps'),
+                  child: const Text('Vedi recensioni su Google Maps'),
                 ),
               ],
               const SizedBox(height: 6),

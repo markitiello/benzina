@@ -175,13 +175,14 @@ class GoogleRating {
     required this.count,
     required this.reviews,
     required this.mapsUrl,
-    this.attribution = 'Valutazioni e recensioni fornite da Google',
+    this.attribution = 'Valutazioni fornite da Google',
   });
 
   final double rating;
   final int count;
 
-  /// Al massimo 5, scelte da Google.
+  /// Per ora sempre vuota: il backend chiede a Google solo le stelle (le
+  /// recensioni costano di più). Il testo si legge su Google Maps.
   final List<Review> reviews;
   final Uri? mapsUrl;
 

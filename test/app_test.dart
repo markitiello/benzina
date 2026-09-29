@@ -67,22 +67,19 @@ void main() {
     expect(find.text('Q8 Easy'), findsOneWidget);
   });
 
-  testWidgets('dettaglio distributore con recensioni', (tester) async {
+  testWidgets('dettaglio distributore con valutazione Google', (tester) async {
     await tester.pumpWidget(buildApp());
     await passSplash(tester);
 
     await tester.tap(find.text('Q8 Easy'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Recensioni'), 300);
-    expect(find.text('Recensioni'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Valutazione Google'), 300);
+    expect(find.text('Valutazione Google'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('Valutazioni e recensioni fornite da Google'),
+      find.text('Vedi recensioni su Google Maps'),
       300,
     );
-    expect(
-      find.text('Valutazioni e recensioni fornite da Google'),
-      findsOneWidget,
-    );
+    expect(find.text('Valutazioni fornite da Google'), findsOneWidget);
   });
 
   testWidgets('dettaglio: servizi, orari e contatti', (tester) async {

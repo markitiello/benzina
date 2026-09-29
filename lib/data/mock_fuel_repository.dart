@@ -297,22 +297,7 @@ class MockFuelRepository implements FuelRepository {
     return GoogleRating(
       rating: t.rating,
       count: t.reviewCount,
-      reviews: const [
-        Review(
-          author: 'Utente di prova',
-          rating: 5,
-          relativeTime: '2 settimane fa',
-          text:
-              'Recensione di esempio. Qui comparirà il testo restituito da '
-              'Google Places, troncato a 3 righe.',
-        ),
-        Review(
-          author: 'Altro utente di prova',
-          rating: 4,
-          relativeTime: '1 mese fa',
-          text: 'Seconda recensione di esempio.',
-        ),
-      ],
+      reviews: const [],
       mapsUrl: Uri.https('www.google.com', '/maps/search/', {
         'api': '1',
         'query': '${station.position.latitude},${station.position.longitude}',
