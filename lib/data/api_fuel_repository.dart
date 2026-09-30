@@ -171,12 +171,17 @@ class ApiFuelRepository implements FuelRepository {
   }
 
   @override
-  Future<String?> serverVersion() async {
-    final json = await _api.get('/health');
-    final version = json?['version'];
-    if (version is! String) return null;
-    final commit = json!['commit'];
-    return '$version (${commit is String ? commit : 'sviluppo'})';
+  Future<ServerInfo> serverInfo() async {
+    final json = await _api.get('/health') ?? const {};
+    final version = json['version'];
+    final commit = json['commit'];
+    final day = json['data_date'];
+    return ServerInfo(
+      version: version is String
+          ? '$version (${commit is String ? commit : 'sviluppo'})'
+          : null,
+      dataDate: day is String ? DateTime.tryParse(day) : null,
+    );
   }
 
   // --- Parametri -------------------------------------------------------------

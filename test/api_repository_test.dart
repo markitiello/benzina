@@ -554,14 +554,16 @@ void main() {
     });
   });
 
-  test('versione del server da /health', () async {
+  test('versione del server e giorno dei dati da /health', () async {
     handler = (_) => json({
       'status': 'ok',
       'data_date': '2026-09-29',
       'version': '1.0.57',
       'commit': 'e21dfd2',
     });
-    expect(await repository().serverVersion(), '1.0.57 (e21dfd2)');
+    final info = await repository().serverInfo();
+    expect(info.version, '1.0.57 (e21dfd2)');
+    expect(info.dataDate, DateTime(2026, 9, 29));
     expect(requests.single.url.path, '/health');
 
     handler = (_) => json({
@@ -570,7 +572,9 @@ void main() {
       'version': '1.0',
       'commit': null,
     });
-    expect(await repository().serverVersion(), '1.0 (sviluppo)');
+    final dev = await repository().serverInfo();
+    expect(dev.version, '1.0 (sviluppo)');
+    expect(dev.dataDate, isNull);
   });
 
   test('errore di rete: ApiException con status 0', () async {

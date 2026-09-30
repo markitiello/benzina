@@ -48,6 +48,6 @@ abstract interface class FuelRepository {
   /// recente (tutti i carburanti).
   Future<List<TrendAlert>> trendAlerts({int days = 30});
 
-  /// Versione del backend, es. "1.0.57 (e21dfd2)"; `null` con i dati di prova.
-  Future<String?> serverVersion();
+  /// Versione del backend e giorno dell'ultimo import.
+  Future<ServerInfo> serverInfo();
 }

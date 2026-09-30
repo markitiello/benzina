@@ -58,7 +58,8 @@ void refreshAllData(WidgetRef ref) {
     ..invalidate(stationTrendProvider)
     ..invalidate(favoriteStationsProvider)
     ..invalidate(googleRatingProvider)
-    ..invalidate(trendAlertsProvider);
+    ..invalidate(trendAlertsProvider)
+    ..invalidate(serverInfoProvider);
 }
 
 // --- Impostazioni -----------------------------------------------------------
@@ -362,7 +363,7 @@ final packageInfoProvider = FutureProvider<PackageInfo>(
   (ref) => PackageInfo.fromPlatform(),
 );
 
-/// Versione del backend (Impostazioni → Server); `null` con i dati di prova.
-final serverVersionProvider = FutureProvider<String?>(
-  (ref) => ref.watch(fuelRepositoryProvider).serverVersion(),
+/// Versione del backend e giorno dell'ultimo import (Impostazioni).
+final serverInfoProvider = FutureProvider<ServerInfo>(
+  (ref) => ref.watch(fuelRepositoryProvider).serverInfo(),
 );

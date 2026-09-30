@@ -60,6 +60,19 @@ String formatUpdated(DateTime d, {DateTime? now}) {
   return formatShortDate(d);
 }
 
+/// "oggi", "ieri" oppure "28 set" (solo il giorno, senza ora).
+String formatDay(DateTime d, {DateTime? now}) {
+  now ??= DateTime.now();
+  final diff = DateTime(
+    now.year,
+    now.month,
+    now.day,
+  ).difference(DateTime(d.year, d.month, d.day)).inDays;
+  if (diff == 0) return 'oggi';
+  if (diff == 1) return 'ieri';
+  return formatShortDate(d);
+}
+
 const _weekdays = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
 
 /// Orario per le notifiche: "08:05" se di oggi, il giorno della settimana

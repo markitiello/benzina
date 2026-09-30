@@ -31,4 +31,11 @@ void main() {
     expect(streakDays(series([1.8, 1.81, 1.82])), -2);
     expect(streakDays(series([1.8, 1.8])), 0);
   });
+
+  test('formatDay: oggi, ieri o la data', () {
+    final now = DateTime(2026, 9, 30, 21, 45);
+    expect(formatDay(DateTime(2026, 9, 30), now: now), 'oggi');
+    expect(formatDay(DateTime(2026, 9, 29), now: now), 'ieri');
+    expect(formatDay(DateTime(2026, 9, 28), now: now), '28 set');
+  });
 }

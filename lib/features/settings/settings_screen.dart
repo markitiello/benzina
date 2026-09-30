@@ -25,12 +25,7 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(settingsProvider.notifier);
     final info = ref.watch(packageInfoProvider).value;
     final version = info == null ? '…' : appVersionLabel(info);
-    final updated = ref
-        .watch(nearbyOffersProvider)
-        .value
-        ?.firstOrNull
-        ?.station
-        .updatedAt;
+    final server = ref.watch(serverInfoProvider);
 
     return Scaffold(
       appBar: AppBar(),
@@ -155,8 +150,8 @@ class SettingsScreen extends ConsumerWidget {
               _Row(title: 'Versione', value: version, bold: true),
               _Row(
                 title: 'Server',
-                value: switch (ref.watch(serverVersionProvider)) {
-                  AsyncData(:final value) => value ?? 'dati di prova',
+                value: switch (server) {
+                  AsyncData(:final value) => value.version ?? 'dati di prova',
                   AsyncError() => 'non raggiungibile',
                   _ => '…',
                 },
@@ -164,7 +159,12 @@ class SettingsScreen extends ConsumerWidget {
               // TODO: schermata "Novità" con il changelog.
               _Row(
                 title: 'Dati aggiornati',
-                value: updated == null ? '—' : formatUpdated(updated),
+                // Giorno dell'ultimo import MIMIT (non la data di
+                // comunicazione di un singolo prezzo).
+                value: switch (server.value?.dataDate) {
+                  final day? => formatDay(day),
+                  null => '—',
+                },
               ),
               _Row(
                 title: 'Fonti dei dati',

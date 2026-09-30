@@ -233,6 +233,17 @@ class TrendAlert {
   );
 }
 
+/// Stato del backend (GET /health).
+class ServerInfo {
+  const ServerInfo({this.version, this.dataDate});
+
+  /// Es. "1.0.57 (e21dfd2)"; `null` con i dati di prova.
+  final String? version;
+
+  /// Giorno dell'ultimo import dei prezzi MIMIT.
+  final DateTime? dataDate;
+}
+
 enum NotificationKind {
   // Media nazionale in aumento / in calo (notifiche push dal backend).
   trendUp,

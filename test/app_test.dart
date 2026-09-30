@@ -150,8 +150,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('1.0.0 (sviluppo)'), 200);
     expect(find.text('1.0.0 (sviluppo)'), findsOneWidget);
-    // Con i dati di prova non c'è un server.
+    // Con i dati di prova non c'è un server; i dati sono di oggi.
     expect(find.text('dati di prova'), findsOneWidget);
+    expect(find.text('Dati aggiornati'), findsOneWidget);
+    expect(find.text('oggi'), findsOneWidget);
   });
 
   testWidgets('scheda Andamento', (tester) async {
