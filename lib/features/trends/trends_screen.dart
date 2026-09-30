@@ -64,6 +64,17 @@ class _TrendsScreenState extends ConsumerState<TrendsScreen> {
                 value: national,
                 loadingHeight: 300,
                 builder: (points) {
+                  if (points.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Text(
+                        'Ancora nessun dato per ${_fuel.label.toLowerCase()} in questo periodo.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: c.muted),
+                      ),
+                    );
+                  }
+                  final areaPoints = area.value ?? const <PricePoint>[];
                   final today = points.last.price;
                   final change = today / points.first.price - 1;
                   final label = _periods.firstWhere((p) => p.$1 == _days).$2;
@@ -75,7 +86,7 @@ class _TrendsScreenState extends ConsumerState<TrendsScreen> {
                         style: TextStyle(fontSize: 13, color: c.muted),
                       ),
                       Text(
-                        '${formatPrice(today)} €/l',
+                        '${formatPrice(today)} ${priceUnit(_fuel)}',
                         style: displayStyle(
                           fontSize: 36,
                           height: 1.1,
@@ -94,21 +105,32 @@ class _TrendsScreenState extends ConsumerState<TrendsScreen> {
                       ChartLegend(
                         items: [
                           ('Italia', c.ink, false),
-                          (
-                            'Entro ${formatKm(radius).replaceAll(',0', '')} da te',
-                            c.cheap,
-                            false,
-                          ),
+                          // Con pochi distributori vicini (es. metano) la
+                          // media della zona può mancare.
+                          if (areaPoints.isNotEmpty)
+                            (
+                              'Entro ${formatKm(radius).replaceAll(',0', '')} da te',
+                              c.cheap,
+                              false,
+                            ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       PriceChart(
                         series: [
                           ChartSeries(points: points, color: c.ink, area: true),
-                          if (area.value case final a?)
-                            ChartSeries(points: a, color: c.cheap),
+                          if (areaPoints.isNotEmpty)
+                            ChartSeries(points: areaPoints, color: c.cheap),
                         ],
                       ),
+                      if (area.hasValue && areaPoints.isEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Nessun distributore di ${_fuel.label.toLowerCase()} entro '
+                          '${formatKm(radius).replaceAll(',0', '')} da te per la media della zona.',
+                          style: TextStyle(fontSize: 12, color: c.muted),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -131,13 +153,14 @@ class _TrendsScreenState extends ConsumerState<TrendsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            if (national.value case final points?) ...[
-              if (area.value case final a?)
+            if (national.value case final points? when points.isNotEmpty) ...[
+              if (area.value case final a? when a.isNotEmpty) ...[
                 _InsightCard(national: points, area: a),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
               _Stats(
                 points: points,
-                yearAgo: yearly.value?.first.price,
+                yearAgo: yearly.value?.firstOrNull?.price,
                 periodLabel: _periods.firstWhere((p) => p.$1 == _days).$2,
               ),
             ],

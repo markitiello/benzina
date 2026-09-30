@@ -211,7 +211,7 @@ class _CheapestCard extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Text(
-                              '€/l',
+                              priceUnit(ref.watch(settingsProvider).fuel),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: c.heroMuted,
@@ -274,6 +274,12 @@ class _NationalAverageCard extends ConsumerWidget {
         value: trend,
         loadingHeight: 70,
         builder: (points) {
+          if (points.isEmpty) {
+            return Text(
+              'Media nazionale non ancora disponibile.',
+              style: TextStyle(fontSize: 13, color: c.muted),
+            );
+          }
           final today = points.last.price;
           final change = today / points.first.price - 1;
           final color = change <= 0 ? c.cheap : c.pricey;
@@ -289,7 +295,7 @@ class _NationalAverageCard extends ConsumerWidget {
                       style: TextStyle(fontSize: 13, color: c.muted),
                     ),
                     Text(
-                      '${formatPrice(today)} €/l',
+                      '${formatPrice(today)} ${priceUnit(s.fuel)}',
                       style: displayStyle(fontSize: 24, color: c.ink),
                     ),
                     Text(
