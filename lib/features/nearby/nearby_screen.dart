@@ -7,6 +7,7 @@ import '../../core/format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/service_icons.dart';
 import '../../core/widgets/price_chart.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
@@ -168,9 +169,20 @@ class _CheapestCard extends ConsumerWidget {
                 offer.station.brand,
                 style: displayStyle(fontSize: 22, color: c.heroFg),
               ),
-              Text(
-                '${offer.station.address} · ${formatKm(offer.distanceKm)} · $minutes min',
-                style: TextStyle(fontSize: 14, color: c.heroMuted),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${offer.station.address} · ${formatKm(offer.distanceKm)} · $minutes min',
+                      style: TextStyle(fontSize: 14, color: c.heroMuted),
+                    ),
+                  ),
+                  ServiceIcons(
+                    services: offer.station.details?.services ?? const [],
+                    color: c.heroMuted,
+                    size: 17,
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
               Row(
@@ -412,9 +424,19 @@ class StationTile extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 13, color: c.muted),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          subtitle,
+                          style: TextStyle(fontSize: 13, color: c.muted),
+                        ),
+                      ),
+                      ServiceIcons(
+                        services: station.details?.services ?? const [],
+                        color: c.muted,
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -83,6 +83,18 @@ void main() {
     expect(find.text('Valutazioni fornite da Google'), findsOneWidget);
   });
 
+  testWidgets('risultati: icone di bar e bancomat', (tester) async {
+    await tester.pumpWidget(buildApp());
+    await passSplash(tester);
+
+    // I dati di prova hanno il bancomat ovunque e il bar a distributori alterni.
+    expect(find.byIcon(Icons.atm_rounded), findsWidgets);
+    expect(find.byIcon(Icons.local_cafe_rounded), findsWidgets);
+    expect(find.byTooltip('Bancomat'), findsWidgets);
+    // Gli altri servizi solo nel dettaglio.
+    expect(find.byIcon(Icons.wifi_rounded), findsNothing);
+  });
+
   testWidgets('dettaglio: servizi, orari e contatti', (tester) async {
     await tester.pumpWidget(buildApp());
     await passSplash(tester);

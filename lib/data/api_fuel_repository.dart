@@ -39,6 +39,7 @@ class ApiFuelRepository implements FuelRepository {
               ),
             ],
             updatedAt: _dateTime(o['reported_at']),
+            details: _servicesOnly(o['services']),
           ),
           price: _num(o['price']),
           distanceKm: _num(o['distance_km']),
@@ -227,6 +228,15 @@ class ApiFuelRepository implements FuelRepository {
       updatedAt: updatedAt,
       details: details,
     );
+  }
+
+  /// Nei risultati della ricerca ci sono solo i servizi (se già noti).
+  static StationDetails? _servicesOnly(Object? value) {
+    final services = [
+      for (final s in (value is List ? value : const []))
+        if (s is String) s,
+    ];
+    return services.isEmpty ? null : StationDetails(services: services);
   }
 
   static StationDetails? _details(Object? value) {

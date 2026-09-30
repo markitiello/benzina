@@ -140,6 +140,40 @@ void main() {
     expect(offer.station.updatedAt, DateTime.utc(2026, 9, 25, 17).toLocal());
   });
 
+  test('risultati con i servizi (se già noti)', () async {
+    Map<String, dynamic> offer(int id, List<String> services) => {
+      'station': stationSummary(id),
+      'price': 1.7,
+      'mode': 'self',
+      'reported_at': '2026-09-29T08:00:00+02:00',
+      'distance_km': 1,
+      'services': services,
+    };
+    handler = (_) => json({
+      'fuel': 'benzina',
+      'mode': 'self',
+      'data_date': '2026-09-29',
+      'national_average': 1.8,
+      'offers': [
+        offer(1, ['Bancomat', 'Food&Beverage']),
+        offer(2, []),
+      ],
+    });
+
+    final offers = await repository().offersNear(
+      center: const LatLng(45, 9),
+      radiusKm: 5,
+      fuel: FuelType.benzina,
+      mode: ServiceMode.self,
+    );
+
+    expect(offers.first.station.details!.services, [
+      'Bancomat',
+      'Food&Beverage',
+    ]);
+    expect(offers.last.station.details, isNull);
+  });
+
   test('GPL e metano si chiedono con mode=any', () async {
     handler = (_) => json({
       'fuel': 'gpl',
