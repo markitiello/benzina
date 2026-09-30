@@ -170,6 +170,15 @@ class ApiFuelRepository implements FuelRepository {
     ];
   }
 
+  @override
+  Future<String?> serverVersion() async {
+    final json = await _api.get('/health');
+    final version = json?['version'];
+    if (version is! String) return null;
+    final commit = json!['commit'];
+    return '$version (${commit is String ? commit : 'sviluppo'})';
+  }
+
   // --- Parametri -------------------------------------------------------------
 
   static Map<String, String> _area(LatLng center, double radiusKm) => {

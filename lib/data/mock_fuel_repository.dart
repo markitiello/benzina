@@ -306,6 +306,9 @@ class MockFuelRepository implements FuelRepository {
   }
 
   @override
+  Future<String?> serverVersion() async => null;
+
+  @override
   Future<List<TrendAlert>> trendAlerts({int days = 30}) async {
     await Future<void>.delayed(latency);
     final now = _clock();

@@ -150,6 +150,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('1.0.0 (sviluppo)'), 200);
     expect(find.text('1.0.0 (sviluppo)'), findsOneWidget);
+    // Con i dati di prova non c'è un server.
+    expect(find.text('dati di prova'), findsOneWidget);
   });
 
   testWidgets('scheda Andamento', (tester) async {

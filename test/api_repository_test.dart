@@ -554,6 +554,25 @@ void main() {
     });
   });
 
+  test('versione del server da /health', () async {
+    handler = (_) => json({
+      'status': 'ok',
+      'data_date': '2026-09-29',
+      'version': '1.0.57',
+      'commit': 'e21dfd2',
+    });
+    expect(await repository().serverVersion(), '1.0.57 (e21dfd2)');
+    expect(requests.single.url.path, '/health');
+
+    handler = (_) => json({
+      'status': 'ok',
+      'data_date': null,
+      'version': '1.0',
+      'commit': null,
+    });
+    expect(await repository().serverVersion(), '1.0 (sviluppo)');
+  });
+
   test('errore di rete: ApiException con status 0', () async {
     final api = BenzinaApi(
       baseUrl: Uri.parse('https://api.test'),

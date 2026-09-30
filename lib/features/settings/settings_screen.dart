@@ -153,6 +153,14 @@ class SettingsScreen extends ConsumerWidget {
           _Group(
             children: [
               _Row(title: 'Versione', value: version, bold: true),
+              _Row(
+                title: 'Server',
+                value: switch (ref.watch(serverVersionProvider)) {
+                  AsyncData(:final value) => value ?? 'dati di prova',
+                  AsyncError() => 'non raggiungibile',
+                  _ => '…',
+                },
+              ),
               // TODO: schermata "Novità" con il changelog.
               _Row(
                 title: 'Dati aggiornati',

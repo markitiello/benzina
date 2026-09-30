@@ -47,4 +47,7 @@ abstract interface class FuelRepository {
   /// Tendenze della media nazionale degli ultimi [days] giorni, dalla più
   /// recente (tutti i carburanti).
   Future<List<TrendAlert>> trendAlerts({int days = 30});
+
+  /// Versione del backend, es. "1.0.57 (e21dfd2)"; `null` con i dati di prova.
+  Future<String?> serverVersion();
 }

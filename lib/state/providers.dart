@@ -361,3 +361,8 @@ final unreadCountProvider = Provider<int>(
 final packageInfoProvider = FutureProvider<PackageInfo>(
   (ref) => PackageInfo.fromPlatform(),
 );
+
+/// Versione del backend (Impostazioni → Server); `null` con i dati di prova.
+final serverVersionProvider = FutureProvider<String?>(
+  (ref) => ref.watch(fuelRepositoryProvider).serverVersion(),
+);
