@@ -148,8 +148,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Impostazioni'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('1.0.0 (build 1)'), 200);
-    expect(find.text('1.0.0 (build 1)'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('1.0.0 (sviluppo)'), 200);
+    expect(find.text('1.0.0 (sviluppo)'), findsOneWidget);
   });
 
   testWidgets('scheda Andamento', (tester) async {

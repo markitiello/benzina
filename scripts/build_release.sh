@@ -7,7 +7,7 @@
 #   scripts/build_release.sh all
 #
 # Opzioni:
-#   --build-name 1.2.0    versione visibile (default: quella in pubspec.yaml)
+#   --build-name 1.2.0    versione visibile (default: MAJOR.MINOR.COMMIT, vedi scripts/version.sh)
 #   --build-number 42     numero di build, sempre crescente (default: numero di commit)
 #   --skip-tests          salta analisi e test
 #
@@ -47,9 +47,12 @@ if grep -q '": ""' "$CONFIG"; then
   log "Attenzione: $CONFIG ha valori vuoti, le notifiche push non funzioneranno."
 fi
 
-BUILD_NAME="${BUILD_NAME:-$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)}"
-BUILD_NUMBER="${BUILD_NUMBER:-$(git rev-list --count HEAD)}"
-log "Benzina $BUILD_NAME ($BUILD_NUMBER)"
+VERSION="$(scripts/version.sh)" || die "Versione non calcolabile (vedi scripts/version.sh)."
+read -r DEFAULT_NAME DEFAULT_NUMBER GIT_COMMIT <<< "$VERSION"
+BUILD_NAME="${BUILD_NAME:-$DEFAULT_NAME}"
+BUILD_NUMBER="${BUILD_NUMBER:-$DEFAULT_NUMBER}"
+log "Benzina $BUILD_NAME ($GIT_COMMIT), build $BUILD_NUMBER"
+[[ "$GIT_COMMIT" == *-dirty ]] && log "Attenzione: modifiche non committate, la build non corrisponde a un commit."
 
 if [[ "$SKIP_TESTS" -eq 0 ]]; then
   log "Analisi e test"
@@ -62,6 +65,7 @@ COMMON=(
   --build-name "$BUILD_NAME"
   --build-number "$BUILD_NUMBER"
   --dart-define-from-file "$CONFIG"
+  --dart-define "GIT_COMMIT=$GIT_COMMIT"
   --obfuscate
   --split-debug-info "build/symbols/$BUILD_NAME-$BUILD_NUMBER"
 )

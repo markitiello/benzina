@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/app_version.dart';
 import '../../core/directions.dart';
 import '../../core/format.dart';
 import '../../core/theme/app_colors.dart';
@@ -23,9 +24,7 @@ class SettingsScreen extends ConsumerWidget {
     final s = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
     final info = ref.watch(packageInfoProvider).value;
-    final version = info == null
-        ? '…'
-        : '${info.version} (build ${info.buildNumber})';
+    final version = info == null ? '…' : appVersionLabel(info);
     final updated = ref
         .watch(nearbyOffersProvider)
         .value
@@ -195,7 +194,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 6),
               Text('Benzina', style: displayStyle(fontSize: 17, color: c.ink)),
               Text(
-                'Versione ${info?.version ?? '…'} · © ${DateTime.now().year}',
+                'Versione $version · © ${DateTime.now().year}',
                 style: TextStyle(fontSize: 13, color: c.muted),
               ),
             ],

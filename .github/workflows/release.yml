@@ -1,8 +1,8 @@
 name: Release
 
 # Build di release a ogni tag "v*" (es. git tag v1.2.0 && git push --tags) o a
-# mano da Actions. La versione è quella del tag, il numero di build quello
-# dell'esecuzione.
+# mano da Actions. Versione MAJOR.MINOR.COMMIT (short commit) e numero di
+# build = numero di commit: vedi scripts/version.sh.
 #
 # Secret (Settings → Secrets and variables → Actions):
 #   FIREBASE_RELEASE_JSON     contenuto di config/release.json: indirizzo del
@@ -48,10 +48,7 @@ jobs:
             "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
       - run: flutter pub get
       - name: Build
-        run: |
-          NAME="${GITHUB_REF_NAME#v}"
-          [[ "$GITHUB_REF_TYPE" == "tag" ]] || NAME=""
-          scripts/build_release.sh android ${NAME:+--build-name "$NAME"} --build-number "$GITHUB_RUN_NUMBER"
+        run: scripts/build_release.sh android
       - uses: actions/upload-artifact@v4
         with:
           name: android-release
@@ -73,9 +70,16 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
       - run: cp config/release.example.json config/release.json
-      - run: flutter build ios --release --no-codesign --dart-define-from-file config/release.json
+      - name: Build
+        run: |
+          VERSION="$(scripts/version.sh)"
+          read -r NAME NUMBER COMMIT <<< "$VERSION"
+          flutter build ios --release --no-codesign --dart-define-from-file config/release.json \
+            --build-name "$NAME" --build-number "$NUMBER" --dart-define "GIT_COMMIT=$COMMIT"

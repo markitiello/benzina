@@ -141,7 +141,7 @@ scripts/release.sh ios --build-name 1.1.0             # build + TestFlight (Mac)
 
 - Gli script prima eseguono analisi e test.
 - La build viene offuscata; i simboli per leggere i crash restano in `build/symbols/`.
-- Il numero di build di default è il numero di commit, quindi è sempre crescente.
+- **Versione:** `MAJOR.MINOR.COMMIT`, ad esempio `1.0.412`, e in Impostazioni l'app mostra anche lo short commit: `1.0.412 (a1b2c3d)`. `MAJOR.MINOR` si cambiano a mano nella riga `version:` di `pubspec.yaml`; il terzo numero e il numero di build sono il numero di commit, quindi sempre crescenti come vogliono gli store (`scripts/version.sh`). Con modifiche non committate lo short commit ha il suffisso `-dirty`; con `flutter run` compare "(sviluppo)".
 - Dal test interno o da TestFlight si passa alla produzione dalle console degli store. Per Android si può anche usare `cd android && bundle exec fastlane promote`, che fa un rilascio graduale al 20%.
 
 ### Con GitHub Actions
