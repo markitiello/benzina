@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../core/directions.dart';
 import '../../core/format.dart';
@@ -28,6 +29,30 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final _map = MapController();
   String? _selectedId;
 
+  /// Distributore richiesto prima che la mappa fosse aperta la prima volta:
+  /// la mappa parte già centrata lì.
+  LatLng? _initialFocus;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialFocus = _takeFocus(ref.read(mapFocusProvider), move: false);
+  }
+
+  /// Seleziona il distributore [id] (se è tra i risultati) e ne restituisce
+  /// la posizione; con [move] sposta subito la mappa.
+  LatLng? _takeFocus(String? id, {required bool move}) {
+    if (id == null) return null;
+    final offers = ref.read(nearbyOffersProvider).value ?? const [];
+    final offer = offers.where((o) => o.station.id == id).firstOrNull;
+    Future.microtask(() => ref.read(mapFocusProvider.notifier).clear());
+    if (offer == null) return null;
+    _selectedId = id;
+    final position = offer.station.position;
+    if (move) _map.move(position, 15);
+    return position;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
@@ -37,6 +62,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ref.watch(nearbyOffersProvider).value ?? const <StationOffer>[];
     final average = ref.watch(nationalAverageProvider).value;
     final radiusKm = ref.watch(settingsProvider.select((s) => s.radiusKm));
+    ref.listen(mapFocusProvider, (_, id) {
+      if (id != null) setState(() => _takeFocus(id, move: true));
+    });
 
     StationOffer? selected;
     for (final o in offers) {
@@ -51,8 +79,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             FlutterMap(
               mapController: _map,
               options: MapOptions(
-                initialCenter: location.position,
-                initialZoom: radiusKm <= 2 ? 14 : 13,
+                initialCenter: _initialFocus ?? location.position,
+                initialZoom: _initialFocus != null
+                    ? 15
+                    : (radiusKm <= 2 ? 14 : 13),
                 backgroundColor: c.ground,
               ),
               children: [
@@ -290,19 +320,33 @@ class _SelectedStationSheet extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  formatPrice(offer.price),
-                  style: displayStyle(fontSize: 32, color: c.ink),
-                ),
-                const SizedBox(width: 6),
-                Text('€/l', style: TextStyle(fontSize: 14, color: c.muted)),
-                const SizedBox(width: 10),
-                if (average != null)
-                  DeltaChip(
-                    text: formatPriceDelta(offer.price - average!),
-                    cheaper: offer.price <= average!,
+                // Su schermi stretti (o con testo grande) il prezzo si riduce
+                // invece di spingere fuori i pulsanti.
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        Text(
+                          formatPrice(offer.price),
+                          style: displayStyle(fontSize: 32, color: c.ink),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          priceUnit(ref.watch(settingsProvider).fuel),
+                          style: TextStyle(fontSize: 14, color: c.muted),
+                        ),
+                        const SizedBox(width: 10),
+                        if (average != null)
+                          DeltaChip(
+                            text: formatPriceDelta(offer.price - average!),
+                            cheaper: offer.price <= average!,
+                          ),
+                      ],
+                    ),
                   ),
-                const Spacer(),
+                ),
                 IconButton(
                   tooltip: 'Naviga',
                   onPressed: () => openDirections(context, s.position),

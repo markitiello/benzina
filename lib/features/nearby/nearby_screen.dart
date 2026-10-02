@@ -242,12 +242,29 @@ class _CheapestCard extends ConsumerWidget {
                       label: const Text('Naviga'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Agg. ${formatUpdated(offer.station.updatedAt)}',
-                    style: TextStyle(fontSize: 12, color: c.heroMuted),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        ref
+                            .read(mapFocusProvider.notifier)
+                            .show(offer.station.id);
+                        StatefulNavigationShell.maybeOf(context)?.goBranch(1);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: c.heroFg,
+                        side: BorderSide(color: c.heroMuted),
+                      ),
+                      icon: const Icon(Icons.map_outlined, size: 20),
+                      label: const Text('Mappa'),
+                    ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Prezzo aggiornato ${formatUpdated(offer.station.updatedAt)}',
+                style: TextStyle(fontSize: 12, color: c.heroMuted),
               ),
             ],
           ),

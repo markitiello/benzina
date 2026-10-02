@@ -43,6 +43,21 @@ final staleDataProvider = NotifierProvider<StaleDataNotifier, DateTime?>(
   StaleDataNotifier.new,
 );
 
+/// Distributore da mostrare quando si apre la mappa (es. "Mappa" dalla home);
+/// la mappa lo seleziona, ci si centra sopra e poi lo azzera.
+class MapFocusNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void show(String stationId) => state = stationId;
+
+  void clear() => state = null;
+}
+
+final mapFocusProvider = NotifierProvider<MapFocusNotifier, String?>(
+  MapFocusNotifier.new,
+);
+
 /// Nessun nuovo tentativo automatico quando un provider fallisce (Riverpod
 /// ripete con attese crescenti: senza rete la splash resterebbe ferma per
 /// secondi). Si riprova con il pulsante "Riprova".

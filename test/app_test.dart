@@ -6,6 +6,7 @@ import 'package:benzina/push/push_gateway.dart';
 import 'package:benzina/push/push_providers.dart';
 import 'package:benzina/state/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -165,5 +166,19 @@ void main() {
     expect(find.text('Andamento prezzi'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Un anno fa'), 300);
     expect(find.text('Un anno fa'), findsOneWidget);
+  });
+
+  testWidgets('"Mappa" apre la mappa sul più economico', (tester) async {
+    await tester.pumpWidget(buildApp());
+    await passSplash(tester);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Mappa'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(FlutterMap), findsOneWidget);
+    // La scheda in basso mostra il distributore scelto.
+    expect(find.text('Q8 Easy · Via Pacini 12'), findsOneWidget);
+    expect(find.byTooltip('Naviga'), findsOneWidget);
+    expect(find.text('Dettagli'), findsOneWidget);
   });
 }
