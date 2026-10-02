@@ -221,6 +221,21 @@ class AsyncBody<T> extends StatelessWidget {
               child: Column(
                 children: [
                   const Text('Impossibile caricare i dati.'),
+                  // Il motivo (es. "Errore 401: token App Check non valido")
+                  // aiuta a capire se è un problema di configurazione.
+                  if (error is ApiException)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Errore ${error.status}: ${error.title}'
+                        '${error.detail == null ? '' : ' — ${error.detail}'}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).hintColor,
+                        ),
+                      ),
+                    ),
                   if (onRetry != null)
                     TextButton(
                       onPressed: onRetry,
