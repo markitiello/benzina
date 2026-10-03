@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/benzina_logo.dart';
 import '../../core/widgets/common.dart';
+import '../../data/api/api_config.dart';
 import '../../data/models.dart';
 import '../../push/push_providers.dart';
 import '../../push/push_status.dart';
@@ -177,6 +178,11 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (ApiConfig.privacyUrl case final url?)
+                _Row(
+                  title: 'Informativa sulla privacy',
+                  onTap: () => openExternal(context, url),
+                ),
               _Row(
                 title: 'Licenze open source',
                 onTap: () => showLicensePage(

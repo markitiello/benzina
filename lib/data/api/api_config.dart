@@ -11,4 +11,12 @@ class ApiConfig {
   static const apiKey = String.fromEnvironment('BENZINA_API_KEY');
 
   static bool get isConfigured => baseUrl.isNotEmpty;
+
+  /// Informativa sulla privacy, pubblicata dal backend (public/privacy.html).
+  static Uri? get privacyUrl {
+    if (!isConfigured) return null;
+    final base = Uri.parse(baseUrl);
+    final path = base.path.endsWith('/') ? base.path : '${base.path}/';
+    return base.replace(path: '${path}privacy.html', query: null);
+  }
 }
