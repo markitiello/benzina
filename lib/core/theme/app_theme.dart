@@ -99,7 +99,12 @@ ThemeData buildTheme(Brightness brightness) {
         foregroundColor: colors.onAmber,
         minimumSize: const Size(0, 48),
         shape: const StadiumBorder(),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        // Lo stile del tema sostituisce quello predefinito: senza la famiglia
+        // i pulsanti userebbero il font di sistema invece di DM Sans.
+        textStyle: GoogleFonts.dmSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -108,7 +113,10 @@ ThemeData buildTheme(Brightness brightness) {
         minimumSize: const Size(0, 48),
         side: BorderSide(color: colors.line),
         shape: const StadiumBorder(),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.dmSans(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
