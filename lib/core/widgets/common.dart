@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/api/benzina_api.dart';
+import '../app_check_status.dart';
 import '../theme/app_colors.dart';
 
 /// Scheda bianca (o grigio scuro) con bordo sottile.
@@ -229,6 +230,20 @@ class AsyncBody<T> extends StatelessWidget {
                       child: Text(
                         'Errore ${error.status}: ${error.title}'
                         '${error.detail == null ? '' : ' — ${error.detail}'}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).hintColor,
+                        ),
+                      ),
+                    ),
+                  if (error is ApiException &&
+                      error.status == 401 &&
+                      AppCheckStatus.problem != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'App Check: ${AppCheckStatus.problem}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,

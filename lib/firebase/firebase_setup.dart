@@ -2,6 +2,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../core/app_check_status.dart';
 import 'firebase_config.dart';
 
 /// Inizializza Firebase e App Check. Restituisce `false` se Firebase non è
@@ -17,11 +18,16 @@ import 'firebase_config.dart';
 /// console Firebase, App Check → Gestisci token di debug.
 Future<bool> initFirebase() async {
   final options = FirebaseConfig.currentPlatform;
-  if (options == null) return false;
+  if (options == null) {
+    AppCheckStatus.problem =
+        'Firebase non configurato nella build (config/release.json)';
+    return false;
+  }
   try {
     await Firebase.initializeApp(options: options);
   } catch (e) {
     debugPrint('Firebase non disponibile: $e');
+    AppCheckStatus.problem = 'Firebase non si avvia: $e';
     return false;
   }
   try {
@@ -36,11 +42,26 @@ Future<bool> initFirebase() async {
     await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
   } catch (e) {
     debugPrint('App Check non disponibile: $e');
+    AppCheckStatus.problem = 'App Check non si attiva: $e';
   }
   return true;
 }
 
 /// Token App Check per le chiamate al backend. L'SDK lo tiene in cache e lo
 /// rinnova prima della scadenza.
-Future<String?> appCheckToken({bool forceRefresh = false}) =>
-    FirebaseAppCheck.instance.getToken(forceRefresh);
+Future<String?> appCheckToken({bool forceRefresh = false}) async {
+  try {
+    final token = await FirebaseAppCheck.instance.getToken(forceRefresh);
+    AppCheckStatus.problem = token == null || token.isEmpty
+        ? 'Firebase non ha restituito il token'
+        : null;
+    return token;
+  } catch (e) {
+    AppCheckStatus.problem = 'token non ottenuto: ${_describe(e)}';
+    rethrow;
+  }
+}
+
+String _describe(Object e) => e is FirebaseException
+    ? '${e.code}${e.message == null ? '' : ' — ${e.message}'}'
+    : '$e';
