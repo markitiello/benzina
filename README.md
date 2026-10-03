@@ -132,11 +132,11 @@ Script in `scripts/`, configurazione di fastlane in `android/fastlane` e `ios/fa
 ### A ogni versione
 
 ```sh
-scripts/build_release.sh android --build-name 1.1.0   # solo build: .aab
-scripts/build_release.sh ios --build-name 1.1.0       # solo build: .ipa (Mac)
+scripts/build_release.sh android   # solo build: .aab
+scripts/build_release.sh ios       # solo build: .ipa (Mac)
 
-scripts/release.sh android --build-name 1.1.0         # build + test interno Play Store
-scripts/release.sh ios --build-name 1.1.0             # build + TestFlight (Mac)
+scripts/release.sh android         # build + test interno Play Store
+scripts/release.sh ios             # build + TestFlight (Mac)
 ```
 
 - Gli script prima eseguono analisi e test.
