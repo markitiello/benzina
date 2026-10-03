@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  tearDown(() => AppCheckStatus.problem = null);
+  tearDown(() {
+    AppCheckStatus.problem = null;
+    AppCheckStatus.firstError = null;
+  });
 
   Widget body(Object error) => MaterialApp(
     home: Scaffold(
@@ -36,5 +39,16 @@ void main() {
     AppCheckStatus.problem = 'qualcosa';
     await tester.pumpWidget(body(const ApiException(404, 'Non trovato')));
     expect(find.textContaining('App Check:'), findsNothing);
+  });
+
+  test('dopo "Too many attempts" resta visibile il primo errore', () {
+    AppCheckStatus.firstError =
+        'token non ottenuto: 403 App attestation failed';
+    AppCheckStatus.problem = 'token non ottenuto: Too many attempts.';
+    expect(
+      AppCheckStatus.summary,
+      'token non ottenuto: Too many attempts. '
+      '(primo errore: token non ottenuto: 403 App attestation failed)',
+    );
   });
 }

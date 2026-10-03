@@ -239,11 +239,11 @@ class AsyncBody<T> extends StatelessWidget {
                     ),
                   if (error is ApiException &&
                       error.status == 401 &&
-                      AppCheckStatus.problem != null)
+                      AppCheckStatus.summary != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'App Check: ${AppCheckStatus.problem}',
+                        'App Check: ${AppCheckStatus.summary}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,

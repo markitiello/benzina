@@ -39,6 +39,21 @@ Future<bool> initFirebase() async {
           ? const AppleDebugProvider()
           : const AppleAppAttestWithDeviceCheckFallbackProvider(),
     );
+  } catch (e) {
+    debugPrint('App Check non disponibile: $e');
+    AppCheckStatus.problem = 'App Check non si attiva: $e';
+    return true;
+  }
+  // Primo token chiesto subito e prima del rinnovo automatico: se i server
+  // di Google lo rifiutano, qui si vede il motivo (dopo arriva solo "Too many
+  // attempts").
+  // Al massimo 5 secondi: l'avvio dell'app non deve aspettare oltre.
+  try {
+    await appCheckToken().timeout(const Duration(seconds: 5));
+  } catch (_) {
+    // Errore già registrato in AppCheckStatus; timeout: si riprova dopo.
+  }
+  try {
     await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
   } catch (e) {
     debugPrint('App Check non disponibile: $e');
@@ -57,7 +72,9 @@ Future<String?> appCheckToken({bool forceRefresh = false}) async {
         : null;
     return token;
   } catch (e) {
-    AppCheckStatus.problem = 'token non ottenuto: ${_describe(e)}';
+    final problem = 'token non ottenuto: ${_describe(e)}';
+    AppCheckStatus.problem = problem;
+    AppCheckStatus.firstError ??= problem;
     rethrow;
   }
 }
