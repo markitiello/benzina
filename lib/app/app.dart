@@ -62,6 +62,12 @@ class _BenzinaAppState extends ConsumerState<BenzinaApp> {
 
   Future<void> _syncTopics(Set<String> topics) async {
     final status = ref.read(pushStatusProvider.notifier);
+    // All'avvio prima la posizione (serve alla prima schermata), poi
+    // l'eventuale richiesta del permesso per le notifiche.
+    try {
+      await ref.read(locationProvider.future);
+    } catch (_) {}
+    if (!mounted) return;
     try {
       final allowed = await syncTrendTopics(
         ref.read(pushGatewayProvider),

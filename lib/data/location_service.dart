@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../core/permission_queue.dart';
 import 'mock_fuel_repository.dart';
 
 class UserLocation {
@@ -34,7 +35,7 @@ class GeolocatorLocationService implements LocationService {
       if (!await Geolocator.isLocationServiceEnabled()) return _fallback;
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        permission = await PermissionQueue.run(Geolocator.requestPermission);
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
