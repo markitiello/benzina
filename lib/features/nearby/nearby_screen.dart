@@ -7,6 +7,7 @@ import '../../core/format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/data_source.dart';
 import '../../core/widgets/service_icons.dart';
 import '../../core/widgets/price_chart.dart';
 import '../../data/models.dart';
@@ -104,6 +105,7 @@ class NearbyScreen extends ConsumerWidget {
                           const SizedBox(height: 20),
                           if (list.length > 1)
                             _OtherStations(offers: list.skip(1).toList()),
+                          const DataSourceNote(),
                         ],
                       ),
               ),

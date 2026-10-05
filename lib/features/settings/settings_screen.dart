@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/app_version.dart';
 import '../../core/directions.dart';
@@ -170,13 +171,7 @@ class SettingsScreen extends ConsumerWidget {
               _Row(
                 title: 'Fonti dei dati',
                 value: 'MIMIT, Google',
-                onTap: () => openExternal(
-                  context,
-                  Uri.https(
-                    'www.mimit.gov.it',
-                    '/it/open-data/elenco-dataset/carburanti-prezzi-praticati-e-anagrafica-degli-impianti',
-                  ),
-                ),
+                onTap: () => context.push('/fonti'),
               ),
               if (ApiConfig.privacyUrl case final url?)
                 _Row(

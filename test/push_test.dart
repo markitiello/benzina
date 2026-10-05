@@ -60,7 +60,10 @@ class FakePushGateway implements PushGateway {
   Future<String?> deviceToken() async => 'token-di-prova';
 }
 
-PushMessage trendMessage({String direction = 'down'}) => PushMessage(
+PushMessage trendMessage({
+  String direction = 'down',
+  String day = '2026-09-23',
+}) => PushMessage(
   id: 'm1',
   title: direction == 'down'
       ? 'Benzina self in calo'
@@ -71,7 +74,7 @@ PushMessage trendMessage({String direction = 'down'}) => PushMessage(
     'fuel': 'benzina',
     'mode': 'self',
     'direction': direction,
-    'day': '2026-09-23',
+    'day': day,
   },
   receivedAt: DateTime(2026, 9, 23, 9, 30),
 );
@@ -177,7 +180,11 @@ void main() {
       await tester.pumpWidget(buildApp(push: push));
       await passSplash(tester);
 
-      push.receivedController.add(trendMessage());
+      // Ieri: nessun avviso di prova (oggi, 2 e 12 giorni fa) ha lo stesso
+      // giorno, quindi la notifica non viene unita a un avviso già presente.
+      final yesterday = DateTime.now().subtract(const Duration(days: 1));
+      final day = yesterday.toIso8601String().substring(0, 10);
+      push.receivedController.add(trendMessage(day: day));
       await tester.pumpAndSettle();
       expect(find.byTooltip('Notifiche, 3 non lette'), findsOneWidget);
 

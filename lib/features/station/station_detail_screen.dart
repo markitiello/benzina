@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/data_source.dart';
 import '../../core/widgets/price_chart.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
@@ -103,6 +104,7 @@ class _Body extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         _Reviews(stationId: station.id),
+        const DataSourceNote(),
       ],
     );
   }

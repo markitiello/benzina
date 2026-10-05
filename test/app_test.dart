@@ -1,5 +1,7 @@
 import 'package:benzina/app/app.dart';
 import 'package:benzina/app/router.dart';
+import 'package:benzina/core/theme/app_theme.dart';
+import 'package:benzina/core/widgets/data_source.dart';
 import 'package:benzina/data/location_service.dart';
 import 'package:benzina/data/mock_fuel_repository.dart';
 import 'package:benzina/push/push_gateway.dart';
@@ -180,5 +182,50 @@ void main() {
     expect(find.text('Q8 Easy · Via Pacini 12'), findsOneWidget);
     expect(find.byTooltip('Naviga'), findsOneWidget);
     expect(find.text('Dettagli'), findsOneWidget);
+  });
+
+  testWidgets('home: fonte MIMIT con link e pagina delle fonti', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildApp());
+    await passSplash(tester);
+
+    final note = find.byType(DataSourceNote).first;
+    // La home ha più elementi scorrevoli (filtri in orizzontale): la lista è
+    // quella verticale.
+    await tester.scrollUntilVisible(
+      note,
+      300,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    expect(
+      find.descendant(
+        of: note,
+        matching: find.textContaining('mimit.gov.it', findRichText: true),
+      ),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('pagina Fonti dei dati con i link ai siti del MIMIT', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(Brightness.light),
+        home: const DataSourcesScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Fonti dei dati'), findsOneWidget);
+    expect(find.text('Dati aperti MIMIT (mimit.gov.it)'), findsOneWidget);
+    expect(
+      find.text('Osservaprezzi carburanti (carburanti.mise.gov.it)'),
+      findsOneWidget,
+    );
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/widgets/data_source.dart';
 import '../features/favorites/favorites_screen.dart';
 import '../features/map/map_screen.dart';
 import '../features/nearby/nearby_screen.dart';
@@ -64,6 +65,7 @@ GoRouter buildRouter({
         builder: (_, _) => const NotificationsScreen(),
       ),
       GoRoute(path: '/impostazioni', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/fonti', builder: (_, _) => const DataSourcesScreen()),
     ],
   );
 }

@@ -9,6 +9,7 @@ import '../../core/format.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/data_source.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
 import '../nearby/filter_bar.dart';
@@ -128,10 +129,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       ),
                   ],
                 ),
-                const RichAttributionWidget(
+                RichAttributionWidget(
                   alignment: AttributionAlignment.bottomLeft,
                   attributions: [
                     TextSourceAttribution('© OpenStreetMap contributors'),
+                    TextSourceAttribution(
+                      'Prezzi: MIMIT (mimit.gov.it)',
+                      onTap: () => openExternal(context, mimitDatasetUrl),
+                    ),
                   ],
                 ),
               ],
